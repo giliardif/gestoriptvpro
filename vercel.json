@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/iptv-pro-v4.html" },
+    { "source": "/admin", "destination": "/iptv-admin.html" }
+  ]
+}
