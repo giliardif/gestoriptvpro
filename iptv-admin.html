@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPTV PRO — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--accent:#00d4ff;--accent2:#7b2fff;--accent3:#ff2d78;--green:#00cc6a;--yellow:#f0b800;--teal:#00bfb3;}
+[data-theme="dark"]{--bg:#04060f;--bg2:#070b18;--card:#0a1020;--card2:#0f1830;--border:#162040;--text:#dde8f8;--muted:#3d5570;--shadow:rgba(0,0,0,.7);}
+[data-theme="light"]{--bg:#eef2ff;--bg2:#e0e8f8;--card:#fff;--card2:#f5f8ff;--border:#c4d0e8;--text:#162040;--muted:#6a80aa;--shadow:rgba(0,0,0,.08);}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.015) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+
+/* LOADING */
+#appLoading{position:fixed;inset:0;background:#04060f;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s;}
+#appLoading.gone{opacity:0;pointer-events:none;}
+.l-logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:var(--accent);letter-spacing:5px;}
+.l-bar{width:200px;height:2px;background:#162040;border-radius:2px;overflow:hidden;}
+.l-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));animation:lf 1.2s ease forwards;}
+@keyframes lf{from{width:0}to{width:100%}}
+.l-sub{font-size:10px;color:var(--muted);letter-spacing:2px;}
+
+/* AUTH */
+#authScreen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;}
+#authScreen.hidden{display:none;}
+.auth-box{width:360px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;box-shadow:0 20px 60px var(--shadow);}
+.auth-logo{text-align:center;margin-bottom:22px;}
+.auth-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--accent3),var(--accent2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 10px;}
+.auth-title{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:var(--accent3);letter-spacing:3px;}
+.auth-sub{font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-top:3px;}
+.auth-badge{background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.2);border-radius:8px;padding:7px 11px;font-size:11px;color:var(--accent3);text-align:center;margin-bottom:14px;}
+.form-group{margin-bottom:12px;}
+.form-group label{display:block;font-size:9px;font-weight:600;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.form-group input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.form-group input:focus{border-color:var(--accent3);}
+.form-group input::placeholder{color:var(--muted);}
+.auth-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent3),var(--accent2));border:none;border-radius:8px;color:#fff;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-top:4px;}
+.auth-btn:hover{box-shadow:0 0 20px rgba(255,45,120,.4);transform:translateY(-1px);}
+.auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.auth-msg{text-align:center;font-size:12px;margin-top:8px;min-height:16px;color:var(--accent3);}
+
+/* LAYOUT */
+.sidebar{position:fixed;left:0;top:0;width:220px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;opacity:0;transition:opacity .3s,transform .3s;}
+.sidebar.ready{opacity:1;}
+.logo{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--accent3),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.logo-text{font-family:'Orbitron',monospace;font-size:11px;font-weight:900;color:var(--accent3);letter-spacing:2px;}
+.logo-sub{font-size:8px;color:var(--muted);letter-spacing:1.5px;}
+nav{flex:1;padding:8px 0;overflow-y:auto;}
+.nav-sec{padding:7px 14px 3px;font-size:8.5px;letter-spacing:2px;color:var(--muted);font-weight:600;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;transition:all .2s;color:var(--muted);font-size:13px;font-weight:500;position:relative;}
+.nav-item:hover{color:var(--text);background:rgba(255,45,120,.05);}
+.nav-item.active{color:var(--accent3);background:rgba(255,45,120,.08);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent3);box-shadow:0 0 8px var(--accent3);}
+.nav-ico{font-size:13px;width:16px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--accent3);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;}
+.sf{padding:10px 14px;border-top:1px solid var(--border);}
+.sf-user{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.av{width:28px;height:28px;background:linear-gradient(135deg,var(--accent3),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;color:#fff;flex-shrink:0;}
+.db-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+.db-dot.ok{background:var(--green);box-shadow:0 0 4px var(--green);}
+.btn-logout{width:100%;padding:5px;background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.2);border-radius:6px;color:var(--accent3);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-logout:hover{background:rgba(255,45,120,.18);}
+.main{margin-left:220px;min-height:100vh;position:relative;z-index:1;}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(4,6,15,.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;gap:10px;}
+.page-ttl{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px;color:var(--accent3);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:7px;}
+.content{padding:18px 20px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;white-space:nowrap;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.btn-danger{background:rgba(255,45,120,.12);color:var(--accent3);border:1px solid rgba(255,45,120,.3);}
+.btn-danger:hover{background:rgba(255,45,120,.25);}
+.btn-success{background:rgba(0,204,106,.12);color:var(--green);border:1px solid rgba(0,204,106,.3);}
+.btn-success:hover{background:rgba(0,204,106,.25);}
+.btn-ghost{background:var(--card);color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--accent3);color:var(--accent3);}
+.btn-yellow{background:rgba(240,184,0,.1);color:var(--yellow);border:1px solid rgba(240,184,0,.3);}
+.btn-sm{padding:3px 9px;font-size:11px;}
+.icon-btn{background:var(--card);border:1px solid var(--border);width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .2s;color:var(--text);}
+.icon-btn:hover{border-color:var(--accent3);}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--card);border-radius:12px;padding:14px;position:relative;overflow:hidden;animation:fu .4s ease both;transition:transform .2s;}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;}
+.stat-card.red{border:1px solid rgba(255,45,120,.2);} .stat-card.red::after{background:var(--accent3);}
+.stat-card.blue{border:1px solid rgba(0,212,255,.2);} .stat-card.blue::after{background:var(--accent);}
+.stat-card.green{border:1px solid rgba(0,204,106,.2);}.stat-card.green::after{background:var(--green);}
+.stat-card.purple{border:1px solid rgba(123,47,255,.2);}.stat-card.purple::after{background:var(--accent2);}
+.stat-card.yellow{border:1px solid rgba(240,184,0,.2);}.stat-card.yellow::after{background:var(--yellow);}
+.stat-card:nth-child(1){animation-delay:.05s}.stat-card:nth-child(2){animation-delay:.1s}.stat-card:nth-child(3){animation-delay:.15s}.stat-card:nth-child(4){animation-delay:.2s}.stat-card:nth-child(5){animation-delay:.25s}
+.si{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px;}
+.stat-card.red   .si{background:rgba(255,45,120,.1);}
+.stat-card.blue  .si{background:rgba(0,212,255,.1);}
+.stat-card.green .si{background:rgba(0,204,106,.1);}
+.stat-card.purple.si{background:rgba(123,47,255,.1);}
+.stat-card.yellow.si{background:rgba(240,184,0,.1);}
+.sv{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;line-height:1;margin-bottom:3px;}
+.stat-card.red   .sv{color:var(--accent3);}
+.stat-card.blue  .sv{color:var(--accent);}
+.stat-card.green .sv{color:var(--green);}
+.stat-card.purple.sv{color:var(--accent2);}
+.stat-card.yellow.sv{color:var(--yellow);}
+.sl{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px;}
+.ss{font-size:10.5px;color:var(--muted);}
+
+/* PANEL */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.panel-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.panel-title{font-family:'Orbitron',monospace;font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--text);display:flex;align-items:center;gap:6px;}
+.panel-title::before{content:'';width:5px;height:5px;background:var(--accent3);border-radius:50%;box-shadow:0 0 5px var(--accent3);animation:pulse 2s infinite;flex-shrink:0;}
+.panel-body{padding:14px 16px;}
+
+/* TABLE */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{padding:8px 10px;text-align:left;font-size:8.5px;font-weight:600;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg2);white-space:nowrap;}
+tbody tr{border-bottom:1px solid rgba(22,32,64,.4);transition:background .15s;}
+tbody tr:hover{background:rgba(255,45,120,.03);}
+tbody tr:last-child{border-bottom:none;}
+td{padding:9px 10px;vertical-align:middle;}
+.ci{display:flex;align-items:center;gap:8px;}
+.av2{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;color:#fff;}
+.cn{font-weight:600;font-size:12.5px;}
+.cs{font-size:10px;color:var(--muted);margin-top:1px;}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:16px;font-size:10px;font-weight:600;}
+.b-ativo{background:rgba(0,204,106,.1);color:var(--green);border:1px solid rgba(0,204,106,.2);}
+.b-trial{background:rgba(0,212,255,.1);color:var(--accent);border:1px solid rgba(0,212,255,.2);}
+.b-bloqueado{background:rgba(255,45,120,.1);color:var(--accent3);border:1px solid rgba(255,45,120,.2);}
+.b-expirado{background:rgba(240,184,0,.1);color:var(--yellow);border:1px solid rgba(240,184,0,.2);}
+.plan-badge{background:rgba(123,47,255,.1);color:var(--accent2);border:1px solid rgba(123,47,255,.2);padding:2px 7px;border-radius:6px;font-size:10px;font-weight:600;}
+.actions{display:flex;gap:3px;}
+.spinner{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent3);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fu{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.empty-state{text-align:center;padding:28px;color:var(--muted);}
+.toast-stack{position:fixed;bottom:14px;right:14px;display:flex;flex-direction:column;gap:5px;z-index:9999;}
+.toast{padding:9px 14px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;animation:si .3s ease;box-shadow:0 4px 16px var(--shadow);}
+@keyframes si{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
+.toast-out{animation:so .3s ease forwards;}
+@keyframes so{to{opacity:0;transform:translateX(40px);}}
+.toast-success{background:rgba(0,204,106,.15);border:1px solid rgba(0,204,106,.4);color:var(--green);}
+.toast-error{background:rgba(255,45,120,.15);border:1px solid rgba(255,45,120,.4);color:var(--accent3);}
+.toast-info{background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.4);color:var(--accent);}
+.toast-warn{background:rgba(240,184,0,.15);border:1px solid rgba(240,184,0,.4);color:var(--yellow);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card2);border:1px solid var(--border);border-radius:13px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:20px;position:relative;animation:mi .2s ease;}
+@keyframes mi{from{opacity:0;transform:scale(.96) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent3);margin-bottom:16px;}
+.modal-close{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);}
+input,select,textarea{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:7px 9px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;outline:none;transition:border-color .2s;width:100%;}
+input:focus,select:focus{border-color:var(--accent3);}
+input::placeholder{color:var(--muted);}
+label{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px;}
+.form-group{margin-bottom:11px;}
+.prog-bar{height:4px;background:var(--border);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.detail-item{display:flex;flex-direction:column;gap:2px;}
+.detail-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.detail-value{font-size:13px;font-weight:600;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+.chip{padding:4px 11px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+.chip:hover{border-color:var(--accent3);color:var(--accent3);}
+.chip.active{background:rgba(255,45,120,.08);border-color:var(--accent3);color:var(--accent3);}
+.filter-row{display:flex;gap:6px;padding:8px 16px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border);}
+.chart-bar-wrap{display:flex;align-items:flex-end;gap:3px;height:80px;margin-top:8px;}
+.chart-bar{flex:1;border-radius:3px 3px 0 0;transition:height .4s;cursor:default;min-width:18px;}
+.donut-wrap{display:flex;align-items:center;gap:14px;}
+.two-col{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
+.side-col{display:flex;flex-direction:column;gap:14px;}
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%);}
+  .main{margin-left:0;}
+  .stats-grid{grid-template-columns:1fr 1fr 1fr;}
+  .two-col{grid-template-columns:1fr;}
+}
+
+/* ===== CREDENCIAIS MP ADMIN ===== */
+.mp-cred-card{background:linear-gradient(135deg,rgba(0,212,255,.05),rgba(123,47,255,.05));border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:16px;position:relative;overflow:hidden;}
+.mp-cred-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--purple));}
+.mp-status-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.mp-connected{display:flex;align-items:center;gap:6px;background:rgba(0,204,106,.1);border:1px solid rgba(0,204,106,.25);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--green);font-weight:600;}
+.mp-disconnected{display:flex;align-items:center;gap:6px;background:rgba(240,184,0,.1);border:1px solid rgba(240,184,0,.25);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--yellow);font-weight:600;}
+.token-input{font-family:monospace;font-size:11px;letter-spacing:.3px;}
+.plano-sis-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;margin-bottom:7px;}
+.plano-sis-nome{flex:1;font-weight:600;font-size:13px;}
+.plano-sis-preco{color:var(--accent);font-weight:700;font-size:14px;min-width:80px;text-align:right;}
+.plano-sis-actions{display:flex;gap:5px;}
+
+
+/* ===== RECEITA DO SISTEMA ===== */
+.sys-rev-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.sys-rev-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
+.sys-rev-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.sys-rev-card.green::before{background:var(--green);}
+.sys-rev-card.blue::before{background:var(--accent);}
+.sys-rev-card.yellow::before{background:var(--yellow);}
+.sys-rev-card.purple::before{background:var(--purple);}
+.sys-rev-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;margin:6px 0 2px;}
+.sys-rev-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.sys-rev-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.sys-pag-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;border-bottom:1px solid var(--border);}
+.sys-pag-row:last-child{border-bottom:none;}
+.sys-pag-row:hover{background:rgba(255,255,255,.02);}
+.sys-status-pago{background:rgba(0,204,106,.12);color:var(--green);border:1px solid rgba(0,204,106,.25);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;}
+.sys-status-pend{background:rgba(240,184,0,.12);color:var(--yellow);border:1px solid rgba(240,184,0,.25);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;}
+.sys-status-fail{background:rgba(255,45,120,.12);color:var(--pink);border:1px solid rgba(255,45,120,.25);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;}
+
+
+/* ===== CARD RECEITA DO SISTEMA ===== */
+.sys-revenue-banner{background:linear-gradient(135deg,rgba(0,204,106,.08),rgba(0,212,255,.06));border:1px solid rgba(0,204,106,.25);border-radius:12px;padding:16px 20px;margin-bottom:14px;position:relative;overflow:hidden;}
+.sys-revenue-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--accent));}
+.sys-revenue-title{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.sys-revenue-title::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
+.sys-revenue-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.sys-rev-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.sys-rev-item-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.sys-rev-item-val{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;}
+.sys-rev-item-sub{font-size:9px;color:var(--muted);margin-top:2px;}
+
+</style>
+</head>
+<body>
+
+<div id="appLoading">
+  <div class="l-logo">👑 IPTV ADMIN</div>
+  <div class="l-bar"><div class="l-fill"></div></div>
+  <div class="l-sub" id="loadMsg">VERIFICANDO ACESSO...</div>
+</div>
+
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-icon">👑</div>
+      <div class="auth-title">IPTV ADMIN</div>
+      <div class="auth-sub">PAINEL ADMINISTRATIVO</div>
+    </div>
+    <div class="auth-badge">🔐 Acesso restrito — apenas administradores</div>
+    <div class="form-group">
+      <label>Email de Administrador</label>
+      <input type="email" id="aEmail" placeholder="admin@email.com">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="aSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="auth-btn" id="btnLogin" onclick="doLogin()">ACESSAR PAINEL</button>
+    <div class="auth-msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-icon">👑</div>
+    <div><div class="logo-text">ADMIN</div><div class="logo-sub">IPTV PRO SYSTEM</div></div>
+  </div>
+  <nav>
+    <div class="nav-sec">Visão Geral</div>
+    <div class="nav-item active" onclick="goPage('overview',this)"><span class="nav-ico">🏠</span> Dashboard</div>
+    <div class="nav-item" onclick="goPage('revendedores',this)"><span class="nav-ico">👥</span> Revendedores <span class="nav-badge" id="navTotal">—</span></div>
+    <div class="nav-sec" style="margin-top:8px">Financeiro</div>
+    <div class="nav-item" onclick="goPage('receita',this)"><span class="nav-ico">💰</span> Receita do Sistema</div>
+    <div class="nav-sec" style="margin-top:8px">Sistema</div>
+    <div class="nav-item" onclick="goPage('logs',this)"><span class="nav-ico">📋</span> Atividade</div>
+    <div class="nav-item" onclick="goPage('config',this)"><span class="nav-ico">⚙️</span> Configurações</div>
+  </nav>
+  <div class="sf">
+    <div class="sf-user">
+      <div class="av" id="sfAv">AD</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="sfNome">Admin</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><div class="db-dot" id="dbDot"></div><span id="dbTxt">—</span></div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">🚪 Sair</button>
+  </div>
+</aside>
+
+<main class="main" id="mainApp" style="display:none">
+  <header class="topbar">
+    <div class="page-ttl" id="pageTitle">DASHBOARD</div>
+    <div class="topbar-right">
+      <div class="icon-btn" onclick="reloadAll()" title="Atualizar">🔄</div>
+      <div class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</div>
+      <div style="font-size:11px;color:var(--muted);background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.2);padding:3px 9px;border-radius:6px;">👑 ADMIN</div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <!-- RECEITA DO SISTEMA — O QUE VOCÊ RECEBE -->
+      <div class="sys-revenue-banner">
+        <div class="sys-revenue-title">💰 O que você recebe — Assinaturas do Painel</div>
+        <div class="sys-revenue-grid">
+          <div class="sys-rev-item">
+            <div class="sys-rev-item-lbl">✅ Recebido este mês</div>
+            <div class="sys-rev-item-val" style="color:var(--green)" id="sysRecMes2">—</div>
+            <div class="sys-rev-item-sub" id="sysRecMesSub2">—</div>
+          </div>
+          <div class="sys-rev-item">
+            <div class="sys-rev-item-lbl">⏳ Pendente</div>
+            <div class="sys-rev-item-val" style="color:var(--yellow)" id="sysRecPend2">—</div>
+            <div class="sys-rev-item-sub" id="sysRecPendSub2">—</div>
+          </div>
+          <div class="sys-rev-item">
+            <div class="sys-rev-item-lbl">📈 Projeção próx. mês</div>
+            <div class="sys-rev-item-val" style="color:var(--accent)" id="sysRecProj2">—</div>
+            <div class="sys-rev-item-sub">baseado nos planos ativos</div>
+          </div>
+          <div class="sys-rev-item">
+            <div class="sys-rev-item-lbl">💳 Total acumulado</div>
+            <div class="sys-rev-item-val" style="color:var(--purple)" id="sysRecTotal2">—</div>
+            <div class="sys-rev-item-sub">todos os tempos</div>
+          </div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card red"><div class="si">👥</div><div class="sv" id="sRevTotal"><div class="spinner"></div></div><div class="sl">Revendedores</div><div class="ss" id="sRevSub">—</div></div>
+        <div class="stat-card green"><div class="si">✅</div><div class="sv" id="sRevAtivos"><div class="spinner"></div></div><div class="sl">Ativos</div><div class="ss" id="sRevAtivosSub">—</div></div>
+        <div class="stat-card blue"><div class="si">🎯</div><div class="sv" id="sRevTrial"><div class="spinner"></div></div><div class="sl">Em Trial</div><div class="ss">testando o sistema</div></div>
+        <div class="stat-card purple"><div class="si">👤</div><div class="sv" id="sCliTotal"><div class="spinner"></div></div><div class="sl">Total Clientes</div><div class="ss" id="sCliSub">—</div></div>
+        <div class="stat-card yellow"><div class="si">🔒</div><div class="sv" id="sRevBlock"><div class="spinner"></div></div><div class="sl">Bloqueados</div><div class="ss">acesso suspenso</div></div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <!-- Últimos revendedores -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">REVENDEDORES RECENTES</div>
+              <button class="btn btn-ghost btn-sm" onclick="goPage('revendedores',document.querySelector('.nav-item:nth-child(2))'))">Ver todos</button>
+            </div>
+            <div class="tw"><table><thead><tr><th>Revendedor</th><th>Plano</th><th>Status</th><th>Clientes</th><th>Receita Est.</th><th>Expira</th></tr></thead><tbody id="tRecentes"></tbody></table></div>
+          </div>
+          <!-- Gráfico distribuição por plano -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">REVENDEDORES POR PLANO</div></div>
+            <div class="panel-body"><div id="planChart"></div></div>
+          </div>
+        </div>
+        <div class="side-col">
+          <!-- Totais rápidos -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">RECEITA POTENCIAL</div></div>
+            <div class="panel-body">
+              <div style="font-family:'Orbitron',monospace;font-size:26px;font-weight:700;color:var(--green);margin-bottom:4px" id="receitaPot">—</div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:14px">soma das receitas estimadas dos revendedores ativos</div>
+              <div id="receitaBreak"></div>
+              <div style="height:1px;background:var(--border);margin:14px 0 12px"></div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">💰 O que você recebe (assinaturas do painel)</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div style="background:rgba(0,204,106,.06);border:1px solid rgba(0,204,106,.2);border-radius:8px;padding:10px 12px">
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:3px">✅ Recebido este mês</div>
+                  <div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--green)" id="sysRecMes">—</div>
+                </div>
+                <div style="background:rgba(240,184,0,.06);border:1px solid rgba(240,184,0,.2);border-radius:8px;padding:10px 12px">
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:3px">⏳ Pendente</div>
+                  <div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--yellow)" id="sysRecPend">—</div>
+                </div>
+                <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:10px 12px">
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:3px">📈 Projeção mensal</div>
+                  <div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--accent)" id="sysRecProj">—</div>
+                </div>
+                <div style="background:rgba(123,47,255,.06);border:1px solid rgba(123,47,255,.2);border-radius:8px;padding:10px 12px">
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:3px">💳 Total acumulado</div>
+                  <div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--purple)" id="sysRecTotal">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Status distribuição -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">DISTRIBUIÇÃO DE STATUS</div></div>
+            <div class="panel-body"><div id="statusChart"></div></div>
+          </div>
+          <!-- Atividade recente -->
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">ÚLTIMOS CADASTROS</div></div>
+            <div class="panel-body" id="recentActivity"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVENDEDORES -->
+    <div class="page" id="page-revendedores">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">TODOS OS REVENDEDORES</div>
+          <span id="revCount" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div class="filter-row" id="revFilters"></div>
+        <div class="tw"><table><thead><tr><th>Revendedor</th><th>Plano</th><th>Status</th><th>Clientes</th><th>Ativos</th><th>Receita Est.</th><th>Expira</th><th>Cadastro</th><th>Ações</th></tr></thead><tbody id="tRevendedores"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- RECEITA -->
+    <div class="page" id="page-receita">
+
+      <!-- SEÇÃO 1: O QUE VOCÊ RECEBE -->
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-header"><div class="panel-title">💰 O QUE VOCÊ RECEBE — ASSINATURAS DO PAINEL</div></div>
+        <div class="panel-body">
+          <div class="sys-rev-grid">
+            <div class="sys-rev-card green">
+              <div class="sys-rev-lbl">✅ Recebido este mês</div>
+              <div class="sys-rev-val" style="color:var(--green)" id="pgRecMes">—</div>
+              <div class="sys-rev-sub" id="pgRecMesSub">—</div>
+            </div>
+            <div class="sys-rev-card yellow">
+              <div class="sys-rev-lbl">⏳ Pendente</div>
+              <div class="sys-rev-val" style="color:var(--yellow)" id="pgRecPend">—</div>
+              <div class="sys-rev-sub" id="pgRecPendSub">—</div>
+            </div>
+            <div class="sys-rev-card blue">
+              <div class="sys-rev-lbl">📈 Projeção mensal</div>
+              <div class="sys-rev-val" style="color:var(--accent)" id="pgRecProj">—</div>
+              <div class="sys-rev-sub" id="pgRecProjSub">baseado nos planos ativos</div>
+            </div>
+            <div class="sys-rev-card purple">
+              <div class="sys-rev-lbl">💳 Total acumulado</div>
+              <div class="sys-rev-val" style="color:var(--purple)" id="pgRecAcum">—</div>
+              <div class="sys-rev-sub">todos os tempos</div>
+            </div>
+          </div>
+          <!-- Histórico de pagamentos recebidos -->
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Últimos pagamentos recebidos</div>
+          <div id="sysPayList">
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Carregando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 2: RECEITA DOS REVENDEDORES -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+        <div class="stat-card green"><div class="si">💰</div><div class="sv" id="rTotal">—</div><div class="sl">Receita Total Est.</div><div class="ss">revendedores ativos</div></div>
+        <div class="stat-card blue"><div class="si">📊</div><div class="sv" id="rMedia">—</div><div class="sl">Média por Revendedor</div><div class="ss" id="rMediaSub">—</div></div>
+        <div class="stat-card purple"><div class="si">🏆</div><div class="sv" id="rTop">—</div><div class="sl">Maior Revendedor</div><div class="ss" id="rTopNome">—</div></div>
+        <div class="stat-card yellow"><div class="si">📈</div><div class="sv" id="rCliMedio">—</div><div class="sl">Clientes / Revendedor</div><div class="ss">média</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">📊 RANKING DE RECEITA DOS REVENDEDORES</div></div>
+        <div class="tw"><table><thead><tr><th>#</th><th>Revendedor</th><th>Plano Sistema</th><th>Clientes</th><th>Ativos</th><th>Receita Est.</th><th>% do Total</th></tr></thead><tbody id="tReceita"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- LOGS / ATIVIDADE -->
+    <div class="page" id="page-logs">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">REVENDEDORES RECÉM CADASTRADOS</div><button class="btn btn-ghost btn-sm" onclick="loadLogs()">🔄 Atualizar</button></div>
+        <div class="tw"><table><thead><tr><th>Revendedor</th><th>Email</th><th>Plano</th><th>Status</th><th>Cadastro</th></tr></thead><tbody id="tLogs"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="page" id="page-config">
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- ROW 1 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">👑 INFORMAÇÕES DO ADMIN</div></div>
+            <div class="panel-body">
+              <div id="adminInfo" style="font-size:13px;display:flex;flex-direction:column;gap:8px"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">⚙️ SISTEMA</div></div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:13px">Tema</span>
+                <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌙 Alternar</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:13px">
+                <div class="db-dot ok"></div> Supabase conectado
+              </div>
+              <div style="font-size:11px;color:var(--muted)">Painel Admin v1.0 — IPTV PRO</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 2: MERCADO PAGO -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between">
+            <div class="panel-title">💳 MERCADO PAGO — CREDENCIAIS</div>
+            <div id="mpStatusBadge" class="mp-disconnected">⚡ Não configurado</div>
+          </div>
+          <div class="panel-body">
+            <div class="mp-cred-card">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+                As credenciais ficam salvas no Supabase e são usadas pelos revendedores para processar pagamentos de assinatura.<br>
+                Acesse <strong style="color:var(--accent)">mercadopago.com.br → Credenciais</strong> para obter as chaves.
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+                <div class="form-group">
+                  <label>🔑 Public Key</label>
+                  <input class="token-input" id="mpPublicKey" placeholder="APP_USR-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" type="password">
+                  <div style="display:flex;gap:5px;margin-top:5px">
+                    <button class="btn btn-ghost btn-sm" onclick="toggleVis('mpPublicKey')">👁 Ver</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>🔐 Access Token (Produção)</label>
+                  <input class="token-input" id="mpAccessToken" placeholder="APP_USR-0000000000000000-000000-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-000000000" type="password">
+                  <div style="display:flex;gap:5px;margin-top:5px">
+                    <button class="btn btn-ghost btn-sm" onclick="toggleVis('mpAccessToken')">👁 Ver</button>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn btn-primary" id="btnSaveMp" onclick="saveMpCredentials()">💾 Salvar Credenciais</button>
+                <button class="btn btn-ghost btn-sm" onclick="testMpCredentials()">🧪 Testar Conexão</button>
+                <span id="mpTestResult" style="font-size:11px;color:var(--muted)"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 3: PLANOS DO SISTEMA -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between">
+            <div class="panel-title">📋 PLANOS DO SISTEMA</div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('mPlanoSis')">➕ Novo Plano</button>
+          </div>
+          <div class="panel-body">
+            <div id="planosSisBody">
+              <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Carregando...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- MODAL DETALHES REVENDEDOR -->
+<div class="modal-overlay" id="mDetalhe">
+  <div class="modal" style="width:560px">
+    <button class="modal-close" onclick="closeModal('mDetalhe')">✕</button>
+    <div class="modal-title" id="detTitle">REVENDEDOR</div>
+    <div id="detBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('mDetalhe')">Fechar</button>
+      <button class="btn btn-success btn-sm" id="btnAtivar">✅ Ativar</button>
+      <button class="btn btn-danger btn-sm" id="btnBloquear">🔒 Bloquear</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMAR -->
+<div class="modal-overlay" id="mConfirm">
+  <div class="modal" style="width:340px;text-align:center">
+    <div style="font-size:32px;margin-bottom:8px" id="cfIcon">⚠️</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:5px" id="cfMsg"></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:15px" id="cfSub"></div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn btn-ghost" onclick="closeModal('mConfirm')">Cancelar</button>
+      <button class="btn" id="cfBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PLANO SISTEMA -->
+<div class="modal-overlay" id="mPlanoSis">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" onclick="closeModal('mPlanoSis')">✕</button>
+    <div class="modal-title" id="mPlanoSisTitulo">NOVO PLANO DO SISTEMA</div>
+    <div class="form-grid">
+      <div class="form-group span2"><label>Nome do Plano *</label><input id="psNome" placeholder="Ex: Básico, Pro, Enterprise"></div>
+      <div class="form-group"><label>Preço (R$) *</label><input type="number" id="psPreco" min="0" step="0.01" placeholder="29.90"></div>
+      <div class="form-group"><label>Máx. Clientes</label><input type="number" id="psMaxClientes" placeholder="100"></div>
+      <div class="form-group span2"><label>Descrição</label><textarea id="psDesc" rows="2" placeholder="Recursos incluídos..."></textarea></div>
+      <div class="form-group"><label>Status</label>
+        <select id="psAtivo"><option value="true">✅ Ativo</option><option value="false">❌ Inativo</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('mPlanoSis')">Cancelar</button>
+      <button class="btn btn-primary" id="btnSavePlanoSis" onclick="savePlanoSis()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script>
+// =====================================================================
+// SUPABASE
+// =====================================================================
+const SB_URL = 'https://qzprfrbfabqczhzwwpkw.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6cHJmcmJmYWJxY3poend3cGt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NTE0NDksImV4cCI6MjA4OTUyNzQ0OX0.vOz4XkqRP_BKn69YowDSV4aC5JiTRQQNoCqdFxnexwQ';
+let SB_TOKEN = '', currentUser = null, _refreshTimer = null;
+
+function getH(write=false){
+  const h={'apikey':SB_ANON,'Authorization':'Bearer '+(SB_TOKEN||SB_ANON)};
+  if(write){h['Content-Type']='application/json';h['Prefer']='return=representation';}
+  return h;
+}
+
+function scheduleRefresh(exp=3600){
+  if(_refreshTimer)clearTimeout(_refreshTimer);
+  _refreshTimer=setTimeout(async()=>{try{await refreshToken();}catch(e){}},Math.max((exp-120)*1000,30000));
+}
+
+async function refreshToken(){
+  const r=localStorage.getItem('iptv_admin_refresh');
+  if(!r)return false;
+  const res=await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{'apikey':SB_ANON,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:r})});
+  if(!res.ok){doLogout();return false;}
+  const d=await res.json();
+  SB_TOKEN=d.access_token;
+  localStorage.setItem('iptv_admin_token',d.access_token);
+  localStorage.setItem('iptv_admin_refresh',d.refresh_token);
+  scheduleRefresh(d.expires_in||3600);
+  return true;
+}
+
+async function sbFetch(fn){
+  try{return await fn();}
+  catch(e){
+    if(e.message&&(e.message.includes('JWT expired')||e.message.includes('PGRST303'))){
+      const ok=await refreshToken();
+      if(ok)return await fn();
+      throw new Error('Sessão expirada.');
+    }
+    throw e;
+  }
+}
+
+async function sbGet(table,q=''){return sbFetch(async()=>{const r=await fetch(`${SB_URL}/rest/v1/${table}${q}`,{headers:getH()});if(!r.ok)throw new Error(await r.text());return r.json();});}
+async function sbRpc(fn,params={}){return sbFetch(async()=>{const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:getH(true),body:JSON.stringify(params)});if(!r.ok)throw new Error(await r.text());return r.json();});}
+async function sbPatch(table,id,data){return sbFetch(async()=>{const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${id}`,{method:'PATCH',headers:getH(true),body:JSON.stringify(data)});if(!r.ok)throw new Error(await r.text());return r.json();});}
+async function sbPatchById(table,id,data){return sbFetch(async()=>{const r=await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`,{method:'PATCH',headers:getH(true),body:JSON.stringify(data)});if(!r.ok)throw new Error(await r.text());return r.json();});}
+async function sbPost(table,data){return sbFetch(async()=>{const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:getH(true),body:JSON.stringify(data)});if(!r.ok)throw new Error(await r.text());return r.json();});}
+async function sbDelete(table,id){return sbFetch(async()=>{const r=await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`,{method:'DELETE',headers:getH()});if(!r.ok)throw new Error(await r.text());return r.json();});}
+
+// =====================================================================
+// AUTH
+// =====================================================================
+async function doLogin(){
+  const email=document.getElementById('aEmail').value.trim();
+  const senha=document.getElementById('aSenha').value;
+  const msg=document.getElementById('loginMsg');
+  if(!email||!senha){msg.textContent='Preencha email e senha.';return;}
+  setBtnLoad('btnLogin',true,'VERIFICANDO...');
+  msg.textContent='';
+  try{
+    const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=password`,{
+      method:'POST',headers:{'apikey':SB_ANON,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:senha})
+    });
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error_description||'Credenciais inválidas');
+    SB_TOKEN=d.access_token;
+    currentUser=d.user;
+    // Verificar se é admin
+    const admins=await fetch(`${SB_URL}/rest/v1/admins?user_id=eq.${d.user.id}`,{headers:getH()});
+    const adminData=await admins.json();
+    if(!adminData||adminData.length===0){
+      SB_TOKEN='';currentUser=null;
+      msg.textContent='⛔ Acesso negado — você não é administrador.';
+      return;
+    }
+    localStorage.setItem('iptv_admin_token',d.access_token);
+    localStorage.setItem('iptv_admin_refresh',d.refresh_token);
+    scheduleRefresh(d.expires_in||3600);
+    await afterLogin();
+  }catch(e){msg.textContent=e.message.includes('Invalid login')?'Email ou senha incorretos.':e.message;}
+  finally{setBtnLoad('btnLogin',false,'ACESSAR PAINEL');}
+}
+
+async function tryAutoLogin(){
+  const token=localStorage.getItem('iptv_admin_token');
+  if(!token)return false;
+  try{
+    const r=await fetch(`${SB_URL}/auth/v1/user`,{headers:{'apikey':SB_ANON,'Authorization':'Bearer '+token}});
+    if(!r.ok)throw new Error();
+    const user=await r.json();
+    // Checar admin
+    const ar=await fetch(`${SB_URL}/rest/v1/admins?user_id=eq.${user.id}`,{headers:{'apikey':SB_ANON,'Authorization':'Bearer '+token}});
+    const ad=await ar.json();
+    if(!ad||ad.length===0)return false;
+    SB_TOKEN=token;currentUser=user;
+    scheduleRefresh(3600);
+    return true;
+  }catch(e){
+    // Tentar refresh
+    return await refreshToken();
+  }
+}
+
+async function afterLogin(){
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('mainApp').style.display='';
+  document.getElementById('sidebar').classList.add('ready');
+  updateUserUI();
+  await reloadAll();
+}
+
+function updateUserUI(){
+  const email=currentUser?.email||'Admin';
+  const nome=email.split('@')[0];
+  document.getElementById('sfAv').textContent=nome.substring(0,2).toUpperCase();
+  document.getElementById('sfNome').textContent=nome;
+  const ai=document.getElementById('adminInfo');
+  if(ai)ai.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;font-family:'Orbitron',sans-serif;color:#fff">${nome.substring(0,2).toUpperCase()}</div>
+      <div><div style="font-size:14px;font-weight:700">${nome}</div><div style="font-size:11px;color:var(--accent3)">👑 Administrador Master</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Email</span><span>${currentUser?.email||'—'}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">ID</span><span style="font-size:10px;color:var(--accent)">${currentUser?.id||'—'}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Acesso desde</span><span>${currentUser?.created_at?new Date(currentUser.created_at).toLocaleDateString('pt-BR'):'—'}</span></div>
+    </div>`;
+  loadMpCredentials();
+  loadPlanosSis();
+}
+
+// ===== MERCADO PAGO ADMIN =====
+let mpCfgId = null;
+
+async function loadMpCredentials(){
+  try {
+    // Buscar da primeira config existente (global do sistema)
+    const rows = await sbGet('configuracoes','?order=created_at.asc&limit=1');
+    const cfg = rows?.[0];
+    if(cfg){
+      mpCfgId = cfg.id;
+      if(cfg.mp_public_key){ document.getElementById('mpPublicKey').value=cfg.mp_public_key; }
+      if(cfg.mp_access_token){ document.getElementById('mpAccessToken').value=cfg.mp_access_token; }
+      const badge = document.getElementById('mpStatusBadge');
+      if(badge){
+        if(cfg.mp_access_token){
+          badge.className='mp-connected';
+          badge.textContent='✅ Configurado';
+        } else {
+          badge.className='mp-disconnected';
+          badge.textContent='⚠️ Não configurado';
+        }
+      }
+    }
+  } catch(e){ console.error('loadMpCredentials:',e); }
+}
+
+async function saveMpCredentials(){
+  const pk = document.getElementById('mpPublicKey').value.trim();
+  const at = document.getElementById('mpAccessToken').value.trim();
+  if(!at){ toast('⚠️ Informe o Access Token!','warn'); return; }
+  setBtnLoad('btnSaveMp',true);
+  try {
+    const data = { mp_public_key: pk, mp_access_token: at, updated_at: new Date().toISOString() };
+    if(mpCfgId){
+      await sbPatchById('configuracoes', mpCfgId, data);
+    } else {
+      const [r] = await sbPost('configuracoes',{...data, user_id: currentUser.id});
+      mpCfgId = r.id;
+    }
+    const badge = document.getElementById('mpStatusBadge');
+    if(badge){ badge.className='mp-connected'; badge.textContent='✅ Configurado'; }
+    toast('✅ Credenciais do Mercado Pago salvas!','success');
+  } catch(e){ toast('Erro: '+e.message,'error',5000); }
+  finally{ setBtnLoad('btnSaveMp',false); }
+}
+
+async function testMpCredentials(){
+  const at = document.getElementById('mpAccessToken').value.trim();
+  const pk = document.getElementById('mpPublicKey').value.trim();
+  const res = document.getElementById('mpTestResult');
+  if(!at){ toast('Informe o Access Token primeiro','warn'); return; }
+  if(res){ res.style.color='var(--muted)'; res.textContent='⏳ Validando...'; }
+  // Validar formato do token (não faz requisição — evita bloqueio CORS)
+  // Access Token de produção: APP_USR-{numbers}-{date}-{hex}-{number}
+  const atValid = /^APP_USR-\d+-\d+-[a-f0-9]+-\d+$/i.test(at) || at.startsWith('APP_USR-');
+  const pkValid = !pk || pk.startsWith('APP_USR-');
+  if(atValid && pkValid){
+    if(res){ res.style.color='var(--green)'; res.textContent='✅ Formato válido!'; }
+    toast('✅ Formato das credenciais OK! Salve para ativar.','success');
+  } else if(!atValid){
+    if(res){ res.style.color='var(--yellow)'; res.textContent='⚠️ Formato inesperado'; }
+    toast('⚠️ O Access Token não parece ser do Mercado Pago. Verifique se copiou corretamente.','warn',5000);
+  }
+}
+
+function toggleVis(id){
+  const el=document.getElementById(id);
+  if(el) el.type = el.type==='password'?'text':'password';
+}
+
+// ===== PLANOS DO SISTEMA =====
+let planosSis=[], editPlanoSisId=null;
+
+async function loadPlanosSis(){
+  try {
+    planosSis = await sbGet('planos_sistema','?order=preco.asc');
+    renderPlanosSis();
+  } catch(e){ console.error('loadPlanosSis:',e); }
+}
+
+function renderPlanosSis(){
+  const el=document.getElementById('planosSisBody');
+  if(!el) return;
+  if(!planosSis.length){ el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Nenhum plano cadastrado. Clique em + Novo Plano.</div>'; return; }
+  el.innerHTML=planosSis.map(p=>`
+    <div class="plano-sis-row">
+      <div class="plano-sis-nome">
+        ${p.nome}
+        ${p.ativo?'<span style="font-size:9px;background:rgba(0,204,106,.15);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:6px">ATIVO</span>':'<span style="font-size:9px;background:rgba(255,45,120,.1);color:var(--pink);padding:2px 6px;border-radius:4px;margin-left:6px">INATIVO</span>'}
+      </div>
+      ${p.descricao?`<div style="font-size:11px;color:var(--muted);flex:1">${p.descricao}</div>`:''}
+      ${p.max_clientes?`<div style="font-size:11px;color:var(--muted);min-width:80px">👥 até ${p.max_clientes}</div>`:''}
+      <div class="plano-sis-preco">R$ ${Number(p.preco).toFixed(2).replace('.',',')}</div>
+      <div class="plano-sis-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editPlanoSis('${p.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePlanoSis('${p.id}','${p.nome}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function editPlanoSis(id){
+  const p=planosSis.find(x=>x.id===id); if(!p) return;
+  editPlanoSisId=id;
+  document.getElementById('mPlanoSisTitulo').textContent='✏️ EDITAR PLANO';
+  document.getElementById('psNome').value=p.nome||'';
+  document.getElementById('psPreco').value=p.preco||'';
+  document.getElementById('psMaxClientes').value=p.max_clientes||'';
+  document.getElementById('psDesc').value=p.descricao||'';
+  document.getElementById('psAtivo').value=String(p.ativo!==false);
+  openModal('mPlanoSis');
+}
+
+async function savePlanoSis(){
+  const nome=document.getElementById('psNome').value.trim();
+  const preco=+document.getElementById('psPreco').value;
+  if(!nome||!preco){ toast('Nome e preço são obrigatórios','warn'); return; }
+  setBtnLoad('btnSavePlanoSis',true);
+  try {
+    const data={nome,preco,max_clientes:+document.getElementById('psMaxClientes').value||null,descricao:document.getElementById('psDesc').value||null,ativo:document.getElementById('psAtivo').value==='true'};
+    if(editPlanoSisId){ await sbPatchById('planos_sistema',editPlanoSisId,data); }
+    else { await sbPost('planos_sistema',data); }
+    await loadPlanosSis();
+    closeModal('mPlanoSis');
+    editPlanoSisId=null;
+    document.getElementById('mPlanoSisTitulo').textContent='NOVO PLANO DO SISTEMA';
+    ['psNome','psPreco','psMaxClientes','psDesc'].forEach(i=>document.getElementById(i).value='');
+    toast('✅ Plano salvo!','success');
+  } catch(e){ toast('Erro: '+e.message,'error',5000); }
+  finally{ setBtnLoad('btnSavePlanoSis',false); }
+}
+
+async function deletePlanoSis(id,nome){
+  confirm2('🗑️',`Remover plano "${nome}"?`,'Esta ação não pode ser desfeita.','btn-danger','Remover',async()=>{
+    try { await sbDelete('planos_sistema',id); await loadPlanosSis(); toast(`🗑️ Plano removido.`,'error'); }
+    catch(e){ toast('Erro: '+e.message,'error'); }
+  });
+}
+
+function doLogout(){
+  confirm2('🚪','Sair do painel?','Precisará fazer login novamente.','btn-danger','Sair',()=>{
+    localStorage.removeItem('iptv_admin_token');
+    localStorage.removeItem('iptv_admin_refresh');
+    SB_TOKEN='';currentUser=null;tenants=[];
+    document.getElementById('mainApp').style.display='none';
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('aEmail').value='';
+    document.getElementById('aSenha').value='';
+  });
+}
+
+// =====================================================================
+// STATE & DATA
+// =====================================================================
+let tenants=[], filterStatus='todos', isDark=true;
+const AVAT_COLS=['linear-gradient(135deg,#00d4ff,#7b2fff)','linear-gradient(135deg,#ff2d78,#7b2fff)','linear-gradient(135deg,#00cc6a,#00d4ff)','linear-gradient(135deg,#f0b800,#ff2d78)','linear-gradient(135deg,#7b2fff,#ff2d78)'];
+const fmtBRL=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
+const fmtBRLk=v=>v>=1000?'R$'+(v/1000).toFixed(1)+'k':fmtBRL(v);
+const initials=n=>(n||'??').split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase();
+
+async function reloadAll(){
+  try{
+    tenants=await sbRpc('admin_get_tenants');
+    renderOverview();
+    renderTableRevendedores();
+    renderReceita();
+    renderLogs();
+    loadSysRevenue();
+    setDbStatus(true);
+    document.getElementById('navTotal').textContent=tenants.length;
+  }catch(e){
+    setDbStatus(false);
+    toast('Erro: '+e.message,'error',5000);
+  }
+}
+
+function setDbStatus(ok){
+  document.getElementById('dbDot').className='db-dot '+(ok?'ok':'err');
+  document.getElementById('dbTxt').textContent=ok?'Online':'Erro';
+}
+
+// =====================================================================
+// OVERVIEW
+// =====================================================================
+function renderOverview(){
+  const total=tenants.length;
+  const ativos=tenants.filter(t=>t.status==='ativo').length;
+  const trial=tenants.filter(t=>t.plano_sistema==='trial').length;
+  const bloqueados=tenants.filter(t=>t.status==='bloqueado').length;
+  const cliTotal=tenants.reduce((s,t)=>s+(+t.total_clientes||0),0);
+  const cliAtivos=tenants.reduce((s,t)=>s+(+t.clientes_ativos||0),0);
+  const recTotal=tenants.reduce((s,t)=>s+(+t.receita_estimada||0),0);
+
+  const el=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  el('sRevTotal',total);
+  el('sRevSub',`${Math.round(ativos/Math.max(total,1)*100)}% ativos`);
+  el('sRevAtivos',ativos);
+  el('sRevAtivosSub',`${trial} em trial`);
+  el('sRevTrial',trial);
+  el('sCliTotal',cliTotal);
+  el('sCliSub',`${cliAtivos} ativos`);
+  el('sRevBlock',bloqueados);
+
+  // Tabela recentes
+  const tRec=document.getElementById('tRecentes');
+  if(tRec){
+    const list=[...tenants].slice(0,6);
+    tRec.innerHTML=list.length?list.map((t,i)=>tenantRow(t,i,false)).join('')
+      :'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Nenhum revendedor</td></tr>';
+  }
+
+  // Gráfico por plano
+  const planWrap=document.getElementById('planChart');
+  if(planWrap){
+    const planos={};
+    tenants.forEach(t=>planos[t.plano_sistema]=(planos[t.plano_sistema]||0)+1);
+    const cols={'trial':'#00d4ff','basico':'#00cc6a','profissional':'#7b2fff','enterprise':'#f0b800'};
+    const maxV=Math.max(...Object.values(planos),1);
+    planWrap.innerHTML=Object.entries(planos).map(([p,v])=>{
+      const pct=Math.round(v/total*100);
+      return `<div style="margin-bottom:11px">
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px">
+          <span style="text-transform:capitalize">${p}</span>
+          <strong>${v} revendedor${v!==1?'es':''} (${pct}%)</strong>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(v/maxV*100)}%;background:${cols[p]||'#4a6080'}"></div></div>
+      </div>`;
+    }).join('')||'<div class="empty-state"><p>Sem dados</p></div>';
+  }
+
+  // Receita potencial
+  el('receitaPot',fmtBRL(recTotal));
+  const rb=document.getElementById('receitaBreak');
+  if(rb){
+    const planRec={};
+    tenants.filter(t=>t.status==='ativo').forEach(t=>planRec[t.plano_sistema]=(planRec[t.plano_sistema]||0)+(+t.receita_estimada||0));
+    rb.innerHTML=Object.entries(planRec).sort((a,b)=>b[1]-a[1]).map(([p,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(22,32,64,.3);font-size:12.5px">
+        <span style="color:var(--muted);text-transform:capitalize">${p}</span>
+        <strong style="color:var(--green)">${fmtBRL(v)}</strong>
+      </div>`).join('');
+  }
+
+  // Status donut simples
+  const sw=document.getElementById('statusChart');
+  if(sw){
+    const statusMap={ativo:{l:'Ativos',c:'#00cc6a'},trial:{l:'Trial',c:'#00d4ff'},bloqueado:{l:'Bloqueados',c:'#ff2d78'},expirado:{l:'Expirados',c:'#f0b800'}};
+    const statusCount={};
+    tenants.forEach(t=>statusCount[t.status]=(statusCount[t.status]||0)+1);
+    sw.innerHTML=Object.entries(statusCount).map(([s,v])=>{
+      const info=statusMap[s]||{l:s,c:'#4a6080'};
+      const pct=Math.round(v/total*100);
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="width:10px;height:10px;border-radius:2px;background:${info.c};flex-shrink:0"></div>
+        <span style="flex:1;font-size:12.5px">${info.l}</span>
+        <span style="font-weight:700">${v}</span>
+        <span style="font-size:10px;color:var(--muted);min-width:28px;text-align:right">${pct}%</span>
+        <div style="width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${info.c}"></div></div>
+      </div>`;
+    }).join('')||'<div class="empty-state"><p>Sem dados</p></div>';
+  }
+
+  // Atividade recente
+  const ra=document.getElementById('recentActivity');
+  if(ra){
+    const recentes=[...tenants].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,5);
+    ra.innerHTML=recentes.map(t=>{
+      const diff=Math.round((Date.now()-new Date(t.created_at))/86400000);
+      const when=diff===0?'hoje':diff===1?'ontem':`há ${diff} dias`;
+      return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(22,32,64,.3)">
+        <div style="width:7px;height:7px;border-radius:50%;background:${t.status==='ativo'?'var(--green)':t.status==='trial'?'var(--accent)':'var(--accent3)'};flex-shrink:0"></div>
+        <div style="flex:1"><div style="font-size:12.5px;font-weight:600">${t.nome||t.email}</div><div style="font-size:10px;color:var(--muted)">${when} · ${t.plano_sistema}</div></div>
+        <span class="badge ${t.status==='ativo'?'b-ativo':t.status==='trial'?'b-trial':'b-bloqueado'}">${t.status}</span>
+      </div>`;
+    }).join('')||'<div class="empty-state"><p>Sem atividade</p></div>';
+  }
+}
+
+// =====================================================================
+// TABELA REVENDEDORES
+// =====================================================================
+function tenantRow(t,i,showAll=true){
+  const dias=t.data_expiracao?Math.round((new Date(t.data_expiracao)-new Date())/86400000):0;
+  const expClass=dias<0?'color:var(--accent3)':dias<=7?'color:var(--yellow)':'';
+  const expTxt=dias<0?`${-dias}d vencido`:dias===0?'hoje':`${dias}d`;
+  const stClass=t.status==='ativo'?'b-ativo':t.status==='trial'?'b-trial':t.status==='bloqueado'?'b-bloqueado':'b-expirado';
+  const rec=+t.receita_estimada||0;
+  const allCols=showAll?`<td>${new Date(t.created_at).toLocaleDateString('pt-BR')}</td>`:'';
+  return `<tr>
+    <td><div class="ci">
+      <div class="av2" style="background:${AVAT_COLS[i%AVAT_COLS.length]}">${initials(t.nome||t.email)}</div>
+      <div><div class="cn">${t.nome||'—'}</div><div class="cs">${t.email}</div></div>
+    </div></td>
+    <td><span class="plan-badge">${t.plano_sistema}</span></td>
+    <td><span class="badge ${stClass}">${t.status}</span></td>
+    <td style="font-weight:600">${t.total_clientes||0}</td>
+    ${showAll?`<td style="color:var(--green)">${t.clientes_ativos||0}</td>`:''}
+    <td style="font-weight:700;color:var(--green)">${fmtBRL(rec)}</td>
+    <td><span style="${expClass};font-size:11.5px">${t.data_expiracao?t.data_expiracao.split('T')[0]:'-'}</span><div style="font-size:10px;color:var(--muted)">${expTxt}</div></td>
+    ${allCols}
+    <td><div class="actions">
+      <button class="btn btn-ghost btn-sm" onclick="openDetail('${t.user_id}')">👁️</button>
+      ${t.status!=='bloqueado'?`<button class="btn btn-danger btn-sm" onclick="setStatus('${t.user_id}','bloqueado','${t.nome||t.email}')">🔒</button>`:`<button class="btn btn-success btn-sm" onclick="setStatus('${t.user_id}','ativo','${t.nome||t.email}')">✅</button>`}
+    </div></td>
+  </tr>`;
+}
+
+function renderTableRevendedores(){
+  const tb=document.getElementById('tRevendedores');if(!tb)return;
+  let list=tenants;
+  if(filterStatus!=='todos')list=list.filter(t=>t.status===filterStatus);
+  const cc=document.getElementById('revCount');if(cc)cc.textContent=`${list.length} revendedor${list.length!==1?'es':''}`;
+  tb.innerHTML=list.length?list.map((t,i)=>tenantRow(t,i,true)).join('')
+    :'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">Nenhum revendedor encontrado</td></tr>';
+
+  // Chips filtro
+  const rf=document.getElementById('revFilters');
+  if(rf){
+    const labels={todos:'Todos',ativo:'Ativos',trial:'Trial',bloqueado:'Bloqueados',expirado:'Expirados'};
+    rf.innerHTML=Object.entries(labels).map(([k,v])=>`<div class="chip${k===filterStatus?' active':''}" onclick="setRevFilter('${k}')">${v} ${k!=='todos'?`(${tenants.filter(t=>t.status===k).length})`:''}</div>`).join('');
+  }
+}
+
+function setRevFilter(f){filterStatus=f;renderTableRevendedores();}
+
+// =====================================================================
+// RECEITA
+// =====================================================================
+async function loadSysRevenue(){
+  try {
+    const now = new Date();
+    const mesIni = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const mesFim = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59).toISOString();
+    const [todos, doMes] = await Promise.all([
+      sbGet('pagamentos_sistema','?order=created_at.desc&limit=200'),
+      sbGet('pagamentos_sistema',`?created_at=gte.${mesIni}&created_at=lte.${mesFim}&order=created_at.desc`)
+    ]);
+    const recMes   = doMes.filter(p=>p.status==='aprovado').reduce((s,p)=>s+(+p.valor||0),0);
+    const pendente = todos.filter(p=>p.status==='pendente').reduce((s,p)=>s+(+p.valor||0),0);
+    const acum     = todos.filter(p=>p.status==='aprovado').reduce((s,p)=>s+(+p.valor||0),0);
+    // Projeção = soma dos planos dos revendedores ativos
+    const planosSis = await sbGet('planos_sistema','?ativo=eq.true').catch(()=>[]);
+    const proj = tenants.filter(t=>t.status==='ativo' && t.plano_sistema && t.plano_sistema!=='trial')
+      .reduce((s,t)=>{ const p=planosSis.find(x=>x.nome?.toLowerCase()===t.plano_sistema?.toLowerCase()); return s+(p?.preco||0); },0);
+    // Atualizar dashboard cards
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+    set('sysRecMes',  fmtBRL(recMes));
+    set('sysRecPend', fmtBRL(pendente));
+    set('sysRecProj', fmtBRL(proj));
+    set('sysRecTotal',fmtBRL(acum));
+    // IDs do novo banner no topo do dashboard
+    set('sysRecMes2',  fmtBRL(recMes));
+    set('sysRecPend2', fmtBRL(pendente));
+    set('sysRecProj2', fmtBRL(proj));
+    set('sysRecTotal2',fmtBRL(acum));
+    // Subtextos
+    const nMes = doMes.filter(p=>p.status==='aprovado').length;
+    const nPend = todos.filter(p=>p.status==='pendente').length;
+    const nAtivPag = tenants.filter(t=>t.status==='ativo'&&t.plano_sistema&&t.plano_sistema!=='trial').length;
+    set('sysRecMesSub2', nMes + ' pagamento' + (nMes!==1?'s':'') + ' aprovado' + (nMes!==1?'s':''));
+    set('sysRecPendSub2', nPend + ' aguardando' + (nPend!==1?'m':''));
+    // Atualizar página receita
+    set('pgRecMes',   fmtBRL(recMes));
+    set('pgRecPend',  fmtBRL(pendente));
+    set('pgRecProj',  fmtBRL(proj));
+    set('pgRecAcum',  fmtBRL(acum));
+    const pagMes = doMes.filter(p=>p.status==='aprovado').length;
+    const pagPend = todos.filter(p=>p.status==='pendente').length;
+    set('pgRecMesSub',  pagMes + ' pagamento' + (pagMes!==1?'s':'') + ' aprovado' + (pagMes!==1?'s':''));
+    set('pgRecPendSub', pagPend + ' aguardando confirmação');
+    set('pgRecProjSub', tenants.filter(t=>t.status==='ativo' && t.plano_sistema!=='trial').length + ' revendedores pagantes');
+    // Lista de pagamentos
+    const lista = document.getElementById('sysPayList');
+    if (lista) {
+      if (!todos.length) {
+        lista.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Nenhum pagamento registrado ainda.</div>';
+      } else {
+        lista.innerHTML = todos.slice(0,20).map(p => {
+          const tenant = tenants.find(t => t.user_id === p.tenant_id);
+          const nome = tenant?.nome || tenant?.email || 'Revendedor';
+          const dt = new Date(p.created_at).toLocaleDateString('pt-BR');
+          const metodo = p.metodo === 'pix' ? '⚡ PIX' : p.metodo === 'cartao' ? '💳 Cartão' : p.metodo || '—';
+          const badge = p.status === 'aprovado'
+            ? '<span class="sys-status-pago">✅ PAGO</span>'
+            : p.status === 'pendente'
+            ? '<span class="sys-status-pend">⏳ PENDENTE</span>'
+            : '<span class="sys-status-fail">❌ FALHOU</span>';
+          return `<div class="sys-pag-row">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="av2" style="background:var(--accent);width:30px;height:30px;font-size:10px">${initials(nome)}</div>
+              <div><div style="font-size:12px;font-weight:600">${nome}</div><div style="font-size:10px;color:var(--muted)">${dt} · ${metodo}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="font-weight:700;font-size:14px;color:var(--green)">R$ ${Number(p.valor).toFixed(2).replace('.',',')}</div>
+              ${badge}
+            </div>
+          </div>`;
+        }).join('');
+      }
+    }
+  } catch(e) { console.error('loadSysRevenue:', e); }
+}
+
+function renderReceita(){
+  const ativos=tenants.filter(t=>t.status==='ativo');
+  const recTotal=ativos.reduce((s,t)=>s+(+t.receita_estimada||0),0);
+  const media=ativos.length>0?recTotal/ativos.length:0;
+  const sorted=[...tenants].sort((a,b)=>(+b.receita_estimada||0)-(+a.receita_estimada||0));
+  const top=sorted[0];
+  const cliTotal=tenants.reduce((s,t)=>s+(+t.total_clientes||0),0);
+  const cliMedio=tenants.length>0?Math.round(cliTotal/tenants.length):0;
+
+  const el=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  el('rTotal',fmtBRL(recTotal));
+  el('rMedia',fmtBRL(media));
+  el('rMediaSub',`${ativos.length} revendedor${ativos.length!==1?'es':''} ativos`);
+  el('rTop',fmtBRL(+top?.receita_estimada||0));
+  el('rTopNome',top?.nome||top?.email||'—');
+  el('rCliMedio',cliMedio);
+
+  const tb=document.getElementById('tReceita');if(!tb)return;
+  tb.innerHTML=sorted.map((t,i)=>{
+    const rec=+t.receita_estimada||0;
+    const pct=recTotal>0?Math.round(rec/recTotal*100):0;
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
+    return `<tr>
+      <td style="font-weight:700;text-align:center">${medal}</td>
+      <td><div class="ci"><div class="av2" style="background:${AVAT_COLS[i%AVAT_COLS.length]};width:26px;height:26px;font-size:9px">${initials(t.nome||t.email)}</div><div><div class="cn">${t.nome||'—'}</div><div class="cs">${t.email}</div></div></div></td>
+      <td><span class="plan-badge">${t.plano_sistema}</span></td>
+      <td>${t.total_clientes||0}</td>
+      <td style="color:var(--green)">${t.clientes_ativos||0}</td>
+      <td style="font-weight:700;color:var(--green)">${fmtBRL(rec)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="prog-bar" style="width:60px"><div class="prog-fill" style="width:${pct}%;background:var(--green)"></div></div>
+          <span style="font-size:11px;font-weight:700">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// =====================================================================
+// LOGS
+// =====================================================================
+function renderLogs(){
+  const tb=document.getElementById('tLogs');if(!tb)return;
+  const sorted=[...tenants].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  tb.innerHTML=sorted.map((t,i)=>{
+    const stClass=t.status==='ativo'?'b-ativo':t.status==='trial'?'b-trial':'b-bloqueado';
+    return `<tr>
+      <td><div class="ci"><div class="av2" style="background:${AVAT_COLS[i%AVAT_COLS.length]};width:26px;height:26px;font-size:9px">${initials(t.nome||t.email)}</div><span style="font-weight:600;margin-left:6px">${t.nome||'—'}</span></div></td>
+      <td style="color:var(--muted)">${t.email}</td>
+      <td><span class="plan-badge">${t.plano_sistema}</span></td>
+      <td><span class="badge ${stClass}">${t.status}</span></td>
+      <td style="color:var(--muted);font-size:11px">${new Date(t.created_at).toLocaleString('pt-BR')}</td>
+    </tr>`;
+  }).join('');
+}
+
+// =====================================================================
+// DETALHE + AÇÕES
+// =====================================================================
+function openDetail(uid){
+  const t=tenants.find(x=>x.user_id===uid);if(!t)return;
+  const dias=t.data_expiracao?Math.round((new Date(t.data_expiracao)-new Date())/86400000):0;
+  document.getElementById('detTitle').textContent=`👤 ${t.nome||t.email}`;
+  document.getElementById('detBody').innerHTML=`
+    <div class="detail-grid">
+      <div class="detail-item"><div class="detail-label">Email</div><div class="detail-value" style="font-size:12px">${t.email}</div></div>
+      <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value"><span class="badge ${t.status==='ativo'?'b-ativo':t.status==='trial'?'b-trial':'b-bloqueado'}">${t.status}</span></div></div>
+      <div class="detail-item"><div class="detail-label">Plano</div><div class="detail-value"><span class="plan-badge">${t.plano_sistema}</span></div></div>
+      <div class="detail-item"><div class="detail-label">Expira</div><div class="detail-value" style="${dias<0?'color:var(--accent3)':dias<=7?'color:var(--yellow)':''}">${t.data_expiracao?t.data_expiracao.split('T')[0]:'—'} (${dias<0?'vencido':dias+'d'})</div></div>
+      <div class="detail-item"><div class="detail-label">Total Clientes</div><div class="detail-value">${t.total_clientes||0}</div></div>
+      <div class="detail-item"><div class="detail-label">Clientes Ativos</div><div class="detail-value" style="color:var(--green)">${t.clientes_ativos||0}</div></div>
+      <div class="detail-item"><div class="detail-label">Receita Estimada</div><div class="detail-value" style="color:var(--green)">${fmtBRL(+t.receita_estimada||0)}</div></div>
+      <div class="detail-item"><div class="detail-label">Cadastro</div><div class="detail-value" style="font-size:12px">${new Date(t.created_at).toLocaleDateString('pt-BR')}</div></div>
+    </div>
+    <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--muted)">User ID: ${t.user_id}</div>`;
+
+  const btnA=document.getElementById('btnAtivar');
+  const btnB=document.getElementById('btnBloquear');
+  btnA.style.display=t.status==='bloqueado'?'':'none';
+  btnB.style.display=t.status!=='bloqueado'?'':'none';
+  btnA.onclick=()=>{closeModal('mDetalhe');setStatus(uid,'ativo',t.nome||t.email);};
+  btnB.onclick=()=>{closeModal('mDetalhe');setStatus(uid,'bloqueado',t.nome||t.email);};
+  openModal('mDetalhe');
+}
+
+async function setStatus(uid,status,nome){
+  const isBlock=status==='bloqueado';
+  confirm2(isBlock?'🔒':'✅',isBlock?`Bloquear ${nome}?`:`Ativar ${nome}?`,
+    isBlock?'O revendedor perderá acesso ao painel.':'O revendedor voltará a ter acesso.',
+    isBlock?'btn-danger':'btn-success',
+    isBlock?'Bloquear':'Ativar',
+    async()=>{
+      try{
+        await sbRpc('admin_set_tenant_status',{p_user_id:uid,p_status:status});
+        await reloadAll();
+        toast(`${isBlock?'🔒 Bloqueado':'✅ Ativado'}: ${nome}`,isBlock?'error':'success');
+      }catch(e){toast('Erro: '+e.message,'error',5000);}
+    }
+  );
+}
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function goPage(id,navEl){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(navEl){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));navEl?.classList?.add('active');}
+  const titles={overview:'DASHBOARD',revendedores:'REVENDEDORES',receita:'RECEITA DO SISTEMA',logs:'ATIVIDADE',config:'CONFIGURAÇÕES'};
+  document.getElementById('pageTitle').textContent=titles[id]||id.toUpperCase();
+  if(id==='logs')renderLogs();
+  if(id==='config')updateUserUI();
+  if(id==='receita')loadSysRevenue();
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+function confirm2(icon,msg,sub,btnCls,btnTxt,cb){
+  document.getElementById('cfIcon').textContent=icon;
+  document.getElementById('cfMsg').textContent=msg;
+  document.getElementById('cfSub').textContent=sub;
+  const btn=document.getElementById('cfBtn');
+  btn.className=`btn ${btnCls}`;btn.textContent=btnTxt;
+  btn.onclick=()=>{closeModal('mConfirm');cb();};
+  openModal('mConfirm');
+}
+
+function setBtnLoad(id,loading,txt){
+  const btn=document.getElementById(id);if(!btn)return;
+  btn.disabled=loading;
+  if(loading){btn.dataset.orig=btn.innerHTML;btn.innerHTML=txt||'...';}
+  else{btn.innerHTML=btn.dataset.orig||txt||btn.innerHTML;}
+}
+
+function toast(msg,type='success',dur=3200){
+  const stack=document.getElementById('toastStack');
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;t.textContent=msg;
+  stack.appendChild(t);
+  setTimeout(()=>{t.classList.add('toast-out');setTimeout(()=>t.remove(),300);},dur);
+}
+
+function toggleTheme(){
+  isDark=!isDark;
+  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
+  document.getElementById('themeBtn').textContent=isDark?'🌙':'☀️';
+}
+
+function loadLogs(){renderLogs();toast('🔄 Atualizado','info',2000);}
+
+// =====================================================================
+// INIT
+// =====================================================================
+async function init(){
+  const loadEl=document.getElementById('appLoading');
+  const msgEl=document.getElementById('loadMsg');
+  try{
+    if(msgEl)msgEl.textContent='VERIFICANDO ACESSO...';
+    const logged=await tryAutoLogin();
+    setTimeout(()=>{if(loadEl)loadEl.classList.add('gone');},700);
+    if(logged){
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('mainApp').style.display='';
+      document.getElementById('sidebar').classList.add('ready');
+      updateUserUI();
+      if(msgEl)msgEl.textContent='CARREGANDO DADOS...';
+      await reloadAll();
+    }else{
+      document.getElementById('authScreen').classList.remove('hidden');
+    }
+  }catch(e){
+    console.error(e);
+    if(loadEl)loadEl.classList.add('gone');
+    document.getElementById('authScreen').classList.remove('hidden');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
