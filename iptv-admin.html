@@ -201,6 +201,37 @@ label{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--muted);text-t
 .plano-sis-actions{display:flex;gap:5px;}
 
 
+/* ===== RENOVAÇÃO MANUAL ===== */
+.renew-option{border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .2s;margin-bottom:8px;}
+.renew-option:hover{border-color:var(--accent3);}
+.renew-option.selected{border-color:var(--accent);background:rgba(0,212,255,.06);}
+.renew-option-title{font-weight:700;font-size:13px;margin-bottom:2px;}
+.renew-option-sub{font-size:11px;color:var(--muted);}
+.renew-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.renew-tab{flex:1;padding:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;color:var(--muted);}
+.renew-tab.active{background:rgba(0,212,255,.1);border-color:var(--accent);color:var(--accent);}
+.renew-section{display:none;}
+.renew-section.active{display:block;}
+.plano-sel-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s;margin-bottom:6px;}
+.plano-sel-item:hover{border-color:var(--accent);}
+.plano-sel-item.selected{border-color:var(--accent);background:rgba(0,212,255,.08);}
+.plano-sel-item input[type=radio]{accent-color:var(--accent);}
+
+/* ===== CUPONS ===== */
+.coupon-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:all .2s;}
+.coupon-card:hover{border-color:rgba(0,212,255,.3);}
+.coupon-code{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;letter-spacing:2px;color:var(--accent);background:rgba(0,212,255,.08);border:1px dashed rgba(0,212,255,.3);padding:6px 12px;border-radius:6px;min-width:120px;text-align:center;}
+.coupon-info{flex:1;}
+.coupon-discount{font-size:18px;font-weight:700;color:var(--green);}
+.coupon-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.coupon-uses{font-size:11px;background:rgba(123,47,255,.1);color:var(--accent2);border:1px solid rgba(123,47,255,.2);padding:2px 8px;border-radius:5px;}
+.coupon-status-active{background:rgba(0,204,106,.1);color:var(--green);border:1px solid rgba(0,204,106,.2);padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;}
+.coupon-status-inactive{background:rgba(255,45,120,.1);color:var(--accent3);border:1px solid rgba(255,45,120,.2);padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;}
+.coupon-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.coupon-stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;text-align:center;}
+.coupon-stat-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;margin-bottom:2px;}
+.coupon-stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
 /* ===== RECEITA DO SISTEMA ===== */
 .sys-rev-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
 .sys-rev-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
@@ -273,6 +304,8 @@ label{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--muted);text-t
     <div class="nav-item" onclick="goPage('revendedores',this)"><span class="nav-ico">👥</span> Revendedores <span class="nav-badge" id="navTotal">—</span></div>
     <div class="nav-sec" style="margin-top:8px">Financeiro</div>
     <div class="nav-item" onclick="goPage('receita',this)"><span class="nav-ico">💰</span> Receita do Sistema</div>
+    <div class="nav-sec" style="margin-top:8px">Ferramentas</div>
+    <div class="nav-item" onclick="goPage('cupons',this)"><span class="nav-ico">🎟️</span> Cupons <span class="nav-badge" id="navCupons" style="background:var(--accent2)">—</span></div>
     <div class="nav-sec" style="margin-top:8px">Sistema</div>
     <div class="nav-item" onclick="goPage('logs',this)"><span class="nav-ico">📋</span> Atividade</div>
     <div class="nav-item" onclick="goPage('config',this)"><span class="nav-ico">⚙️</span> Configurações</div>
@@ -547,6 +580,33 @@ label{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--muted);text-t
       </div>
     </div>
 
+    <!-- CUPONS -->
+    <div class="page" id="page-cupons">
+      <div class="coupon-stats-grid">
+        <div class="coupon-stat">
+          <div class="coupon-stat-val" style="color:var(--accent)" id="cStatTotal">—</div>
+          <div class="coupon-stat-lbl">Total de Cupons</div>
+        </div>
+        <div class="coupon-stat">
+          <div class="coupon-stat-val" style="color:var(--green)" id="cStatAtivos">—</div>
+          <div class="coupon-stat-lbl">Cupons Ativos</div>
+        </div>
+        <div class="coupon-stat">
+          <div class="coupon-stat-val" style="color:var(--accent2)" id="cStatUsos">—</div>
+          <div class="coupon-stat-lbl">Total de Usos</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🎟️ CUPONS DE DESCONTO</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('mCupom');resetCupomForm()">➕ Novo Cupom</button>
+        </div>
+        <div class="panel-body" id="cuponsBody">
+          <div style="text-align:center;padding:24px;color:var(--muted)">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </main>
 
@@ -594,6 +654,140 @@ label{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--muted);text-t
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('mPlanoSis')">Cancelar</button>
       <button class="btn btn-primary" id="btnSavePlanoSis" onclick="savePlanoSis()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RENOVAÇÃO MANUAL -->
+<div class="modal-overlay" id="mRenew">
+  <div class="modal" style="width:520px">
+    <button class="modal-close" onclick="closeModal('mRenew')">✕</button>
+    <div class="modal-title">🔄 RENOVAÇÃO MANUAL</div>
+    <div id="renewRevInfo" style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px"></div>
+
+    <!-- Abas -->
+    <div class="renew-tabs">
+      <div class="renew-tab active" onclick="setRenewTab('plano',this)">📋 Por Plano</div>
+      <div class="renew-tab" onclick="setRenewTab('dias',this)">📅 Adicionar Dias</div>
+      <div class="renew-tab" onclick="setRenewTab('data',this)">📆 Data Manual</div>
+    </div>
+
+    <!-- Seção: Por Plano -->
+    <div class="renew-section active" id="rsPlano">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Selecione o plano que será aplicado. A data de expiração será calculada automaticamente.</div>
+      <div id="renewPlanosLista"></div>
+      <div class="form-group" style="margin-top:10px">
+        <label>Status após renovação</label>
+        <select id="renewStatusPlano">
+          <option value="ativo">✅ Ativo</option>
+          <option value="trial">🔵 Trial</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Seção: Adicionar Dias -->
+    <div class="renew-section" id="rsDias">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Adiciona dias à data de expiração atual. Se já estiver vencido, conta a partir de hoje.</div>
+      <div class="form-group">
+        <label>Quantidade de Dias *</label>
+        <input type="number" id="renewDias" placeholder="Ex: 30" min="1" max="3650">
+      </div>
+      <div id="renewDiasPreview" style="font-size:11px;color:var(--accent);margin-top:-6px;margin-bottom:8px"></div>
+      <div class="form-group">
+        <label>Status após renovação</label>
+        <select id="renewStatusDias">
+          <option value="ativo">✅ Ativo</option>
+          <option value="trial">🔵 Trial</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Seção: Data Manual -->
+    <div class="renew-section" id="rsData">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Define exatamente até quando o revendedor terá acesso.</div>
+      <div class="form-group">
+        <label>Nova Data de Expiração *</label>
+        <input type="date" id="renewData">
+      </div>
+      <div class="form-group">
+        <label>Plano (opcional)</label>
+        <select id="renewDataPlano">
+          <option value="">— Manter plano atual —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status após renovação</label>
+        <select id="renewStatusData">
+          <option value="ativo">✅ Ativo</option>
+          <option value="trial">🔵 Trial</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Observação (opcional)</label>
+      <input id="renewObs" placeholder="Ex: Bonificação, cortesia, correção manual...">
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('mRenew')">Cancelar</button>
+      <button class="btn btn-primary" id="btnConfirmRenew" onclick="confirmRenew()">🔄 Confirmar Renovação</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CUPOM -->
+<div class="modal-overlay" id="mCupom">
+  <div class="modal" style="width:480px">
+    <button class="modal-close" onclick="closeModal('mCupom')">✕</button>
+    <div class="modal-title" id="mCupomTitulo">🎟️ NOVO CUPOM</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Código do Cupom *</label>
+        <input id="cupomCodigo" placeholder="Ex: PROMO20, TESTE50" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+        <div style="margin-top:5px"><button class="btn btn-ghost btn-sm" onclick="gerarCodigoCupom()">🎲 Gerar código aleatório</button></div>
+      </div>
+      <div class="form-group">
+        <label>Tipo de Desconto *</label>
+        <select id="cupomTipo" onchange="updateCupomTipo()">
+          <option value="percentual">% Percentual</option>
+          <option value="fixo">R$ Valor Fixo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label id="cupomValorLabel">Desconto (%) *</label>
+        <input type="number" id="cupomValor" placeholder="20" min="1" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Limite de Usos</label>
+        <select id="cupomLimTipo" onchange="updateCupomLim()">
+          <option value="ilimitado">♾️ Ilimitado</option>
+          <option value="limitado">🔢 Limitado</option>
+        </select>
+      </div>
+      <div class="form-group" id="cupomLimQtdWrap" style="display:none">
+        <label>Quantidade Máxima</label>
+        <input type="number" id="cupomLimQtd" placeholder="10" min="1">
+      </div>
+      <div class="form-group">
+        <label>Validade (opcional)</label>
+        <input type="date" id="cupomValidade">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="cupomAtivo">
+          <option value="true">✅ Ativo</option>
+          <option value="false">❌ Inativo</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Descrição / Observação</label>
+        <input id="cupomDesc" placeholder="Ex: Promoção de lançamento">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('mCupom')">Cancelar</button>
+      <button class="btn btn-primary" id="btnSaveCupom" onclick="saveCupom()">💾 Salvar Cupom</button>
     </div>
   </div>
 </div>
@@ -901,6 +1095,7 @@ async function reloadAll(){
     renderReceita();
     renderLogs();
     loadSysRevenue();
+    loadCupons();
     setDbStatus(true);
     document.getElementById('navTotal').textContent=tenants.length;
   }catch(e){
@@ -1035,6 +1230,7 @@ function tenantRow(t,i,showAll=true){
     ${allCols}
     <td><div class="actions">
       <button class="btn btn-ghost btn-sm" onclick="openDetail('${t.user_id}')">👁️</button>
+      <button class="btn btn-yellow btn-sm" onclick="openRenewModal('${t.user_id}')" title="Renovar manualmente">🔄</button>
       ${t.status!=='bloqueado'?`<button class="btn btn-danger btn-sm" onclick="setStatus('${t.user_id}','bloqueado','${t.nome||t.email}')">🔒</button>`:`<button class="btn btn-success btn-sm" onclick="setStatus('${t.user_id}','ativo','${t.nome||t.email}')">✅</button>`}
     </div></td>
   </tr>`;
@@ -1245,11 +1441,12 @@ function goPage(id,navEl){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));navEl?.classList?.add('active');}
-  const titles={overview:'DASHBOARD',revendedores:'REVENDEDORES',receita:'RECEITA DO SISTEMA',logs:'ATIVIDADE',config:'CONFIGURAÇÕES'};
+  const titles={overview:'DASHBOARD',revendedores:'REVENDEDORES',receita:'RECEITA DO SISTEMA',logs:'ATIVIDADE',config:'CONFIGURAÇÕES',cupons:'CUPONS DE DESCONTO'};
   document.getElementById('pageTitle').textContent=titles[id]||id.toUpperCase();
   if(id==='logs')renderLogs();
   if(id==='config')updateUserUI();
   if(id==='receita')loadSysRevenue();
+  if(id==='cupons')loadCupons();
 }
 
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -1288,6 +1485,316 @@ function toggleTheme(){
 }
 
 function loadLogs(){renderLogs();toast('🔄 Atualizado','info',2000);}
+
+// =====================================================================
+// RENOVAÇÃO MANUAL
+// =====================================================================
+let renewUid = null, renewTab = 'plano';
+
+function openRenewModal(uid){
+  const t = tenants.find(x=>x.user_id===uid); if(!t) return;
+  renewUid = uid;
+  renewTab = 'plano';
+
+  // Info do revendedor
+  const dias = t.data_expiracao ? Math.round((new Date(t.data_expiracao)-new Date())/86400000) : null;
+  const expStr = t.data_expiracao ? t.data_expiracao.split('T')[0] : '—';
+  const expInfo = dias===null?'sem data':dias<0?`<span style="color:var(--accent3)">vencido há ${-dias}d</span>`:`<span style="color:var(--yellow)">${dias}d restantes</span>`;
+  document.getElementById('renewRevInfo').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff">${initials(t.nome||t.email)}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:13px">${t.nome||'—'} <span style="font-size:10px;color:var(--muted)">(${t.email})</span></div>
+        <div style="font-size:11px;color:var(--muted)">Plano: <strong style="color:var(--accent2)">${t.plano_sistema}</strong> · Expira: <strong>${expStr}</strong> · ${expInfo}</div>
+      </div>
+    </div>`;
+
+  // Preencher lista de planos
+  const lista = document.getElementById('renewPlanosLista');
+  if(lista){
+    lista.innerHTML = planosSis.filter(p=>p.ativo).map(p=>`
+      <div class="plano-sel-item" onclick="selectRenewPlano('${p.id}',this)">
+        <input type="radio" name="renewPlano" value="${p.id}">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:13px">${p.nome}</div>
+          <div style="font-size:11px;color:var(--muted)">${p.descricao||''} ${p.max_clientes?'· Até '+p.max_clientes+' clientes':''}</div>
+        </div>
+        <div style="font-family:'Orbitron',monospace;font-weight:700;color:var(--green)">R$ ${Number(p.preco).toFixed(2).replace('.',',')}</div>
+      </div>`).join('') || '<div style="color:var(--muted);font-size:12px;padding:10px">Nenhum plano ativo cadastrado. Cadastre em Configurações → Planos do Sistema.</div>';
+  }
+
+  // Preencher select de plano em data manual
+  const selData = document.getElementById('renewDataPlano');
+  if(selData){
+    selData.innerHTML = '<option value="">— Manter plano atual —</option>' +
+      planosSis.filter(p=>p.ativo).map(p=>`<option value="${p.nome}">${p.nome} — R$ ${Number(p.preco).toFixed(2).replace('.',',')}</option>`).join('');
+  }
+
+  // Default data
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+30);
+  document.getElementById('renewData').value = tomorrow.toISOString().split('T')[0];
+  document.getElementById('renewDias').value = '30';
+  document.getElementById('renewObs').value = '';
+  updateRenewDiasPreview(t);
+
+  // Reset tabs
+  document.querySelectorAll('.renew-tab').forEach((tab,i)=>tab.classList.toggle('active',i===0));
+  document.querySelectorAll('.renew-section').forEach((s,i)=>s.classList.toggle('active',i===0));
+
+  openModal('mRenew');
+}
+
+function selectRenewPlano(id, el){
+  document.querySelectorAll('.plano-sel-item').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');
+  const inp = el.querySelector('input[type=radio]');
+  if(inp) inp.checked = true;
+}
+
+function setRenewTab(tab, el){
+  renewTab = tab;
+  document.querySelectorAll('.renew-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const map = {plano:'rsPlano',dias:'rsDias',data:'rsData'};
+  document.querySelectorAll('.renew-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(map[tab]).classList.add('active');
+}
+
+function updateRenewDiasPreview(t){
+  const dias = parseInt(document.getElementById('renewDias')?.value||0);
+  const prev = document.getElementById('renewDiasPreview');
+  if(!prev || !dias) return;
+  const base = t?.data_expiracao && new Date(t.data_expiracao) > new Date() ? new Date(t.data_expiracao) : new Date();
+  base.setDate(base.getDate()+dias);
+  prev.textContent = `→ Nova expiração: ${base.toLocaleDateString('pt-BR')}`;
+}
+
+document.addEventListener('input',e=>{
+  if(e.target.id==='renewDias'){
+    const t = tenants.find(x=>x.user_id===renewUid);
+    updateRenewDiasPreview(t);
+  }
+});
+
+async function confirmRenew(){
+  const t = tenants.find(x=>x.user_id===renewUid); if(!t) return;
+  let novaData = null, novoPlano = null, novoStatus = 'ativo';
+
+  if(renewTab==='plano'){
+    const sel = document.querySelector('input[name="renewPlano"]:checked');
+    if(!sel){ toast('Selecione um plano!','warn'); return; }
+    const plano = planosSis.find(p=>p.id===sel.value);
+    if(!plano){ toast('Plano inválido','error'); return; }
+    novoPlano = plano.nome;
+    const d = new Date();
+    d.setDate(d.getDate()+(plano.duracao_dias||30));
+    novaData = d.toISOString();
+    novoStatus = document.getElementById('renewStatusPlano').value;
+  } else if(renewTab==='dias'){
+    const dias = parseInt(document.getElementById('renewDias').value);
+    if(!dias||dias<1){ toast('Informe quantos dias!','warn'); return; }
+    const base = t.data_expiracao && new Date(t.data_expiracao) > new Date() ? new Date(t.data_expiracao) : new Date();
+    base.setDate(base.getDate()+dias);
+    novaData = base.toISOString();
+    novoStatus = document.getElementById('renewStatusDias').value;
+  } else if(renewTab==='data'){
+    const dt = document.getElementById('renewData').value;
+    if(!dt){ toast('Informe a data!','warn'); return; }
+    novaData = new Date(dt+'T23:59:59').toISOString();
+    const dpv = document.getElementById('renewDataPlano').value;
+    if(dpv) novoPlano = dpv;
+    novoStatus = document.getElementById('renewStatusData').value;
+  }
+
+  setBtnLoad('btnConfirmRenew',true,'Renovando...');
+  try {
+    const payload = {
+      status: novoStatus,
+      data_expiracao: novaData,
+      updated_at: new Date().toISOString()
+    };
+    if(novoPlano) payload.plano_sistema = novoPlano;
+
+    await sbPatch('tenants', renewUid, payload);
+    await reloadAll();
+    closeModal('mRenew');
+    const obs = document.getElementById('renewObs').value;
+    toast(`✅ Renovado: ${t.nome||t.email}${obs?' — '+obs:''}`, 'success', 4000);
+  } catch(e){ toast('Erro: '+e.message,'error',5000); }
+  finally{ setBtnLoad('btnConfirmRenew',false,'🔄 Confirmar Renovação'); }
+}
+
+// =====================================================================
+// CUPONS
+// =====================================================================
+let cupons = [], editCupomId = null;
+
+async function loadCupons(){
+  try {
+    cupons = await sbGet('cupons','?order=created_at.desc');
+    renderCupons();
+    const nc = document.getElementById('navCupons');
+    if(nc) nc.textContent = cupons.filter(c=>c.ativo).length;
+  } catch(e){
+    // Tabela pode não existir ainda
+    const el = document.getElementById('cuponsBody');
+    if(el) el.innerHTML=`<div style="text-align:center;padding:24px;color:var(--yellow)">⚠️ Tabela de cupons não encontrada. Execute o SQL de migração abaixo.<br><br>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:left;font-family:monospace;font-size:11px;color:var(--accent);max-width:500px;margin:auto;white-space:pre-wrap">CREATE TABLE IF NOT EXISTS cupons (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  codigo TEXT NOT NULL UNIQUE,
+  tipo TEXT NOT NULL DEFAULT 'percentual',
+  valor NUMERIC NOT NULL,
+  limite_usos INTEGER DEFAULT NULL,
+  usos_realizados INTEGER DEFAULT 0,
+  validade DATE DEFAULT NULL,
+  ativo BOOLEAN DEFAULT true,
+  descricao TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);</div></div>`;
+    console.error('loadCupons:',e);
+  }
+}
+
+function renderCupons(){
+  const el = document.getElementById('cuponsBody'); if(!el) return;
+  const total = cupons.length;
+  const ativos = cupons.filter(c=>c.ativo).length;
+  const usos = cupons.reduce((s,c)=>s+(+c.usos_realizados||0),0);
+
+  const sv=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  sv('cStatTotal',total); sv('cStatAtivos',ativos); sv('cStatUsos',usos);
+
+  if(!total){ el.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted)">🎟️ Nenhum cupom criado ainda. Clique em + Novo Cupom para começar.</div>'; return; }
+
+  el.innerHTML = cupons.map(c=>{
+    const limTxt = c.limite_usos ? `${c.usos_realizados||0}/${c.limite_usos} usos` : `${c.usos_realizados||0} usos (ilimitado)`;
+    const valTxt = c.validade ? `Válido até ${new Date(c.validade).toLocaleDateString('pt-BR')}` : 'Sem validade';
+    const descontoTxt = c.tipo==='percentual' ? `${c.valor}% OFF` : `R$ ${Number(c.valor).toFixed(2).replace('.',',')} OFF`;
+    const esgotado = c.limite_usos && c.usos_realizados >= c.limite_usos;
+    const vencido = c.validade && new Date(c.validade) < new Date();
+    const statusBadge = (!c.ativo || esgotado || vencido)
+      ? `<span class="coupon-status-inactive">${esgotado?'ESGOTADO':vencido?'VENCIDO':'INATIVO'}</span>`
+      : `<span class="coupon-status-active">ATIVO</span>`;
+    return `
+      <div class="coupon-card">
+        <div class="coupon-code">${c.codigo}</div>
+        <div class="coupon-info">
+          <div class="coupon-discount">${descontoTxt}</div>
+          <div class="coupon-meta">${c.descricao||'Sem descrição'} · ${valTxt}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          ${statusBadge}
+          <span class="coupon-uses">${limTxt}</span>
+        </div>
+        <div style="display:flex;gap:5px;margin-left:8px">
+          <button class="btn btn-ghost btn-sm" onclick="editCupom('${c.id}')">✏️</button>
+          <button class="btn ${c.ativo?'btn-danger':'btn-success'} btn-sm" onclick="toggleCupom('${c.id}',${!c.ativo})">${c.ativo?'🚫':'✅'}</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCupom('${c.id}','${c.codigo}')">🗑️</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function resetCupomForm(){
+  editCupomId=null;
+  document.getElementById('mCupomTitulo').textContent='🎟️ NOVO CUPOM';
+  ['cupomCodigo','cupomValor','cupomDesc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cupomTipo').value='percentual';
+  document.getElementById('cupomValorLabel').textContent='Desconto (%) *';
+  document.getElementById('cupomLimTipo').value='ilimitado';
+  document.getElementById('cupomLimQtdWrap').style.display='none';
+  document.getElementById('cupomLimQtd').value='';
+  document.getElementById('cupomValidade').value='';
+  document.getElementById('cupomAtivo').value='true';
+}
+
+function updateCupomTipo(){
+  const tipo = document.getElementById('cupomTipo').value;
+  document.getElementById('cupomValorLabel').textContent = tipo==='percentual'?'Desconto (%) *':'Valor Fixo (R$) *';
+}
+
+function updateCupomLim(){
+  const lim = document.getElementById('cupomLimTipo').value;
+  document.getElementById('cupomLimQtdWrap').style.display = lim==='limitado'?'block':'none';
+}
+
+function gerarCodigoCupom(){
+  const chars='ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
+  const code = Array.from({length:8},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+  document.getElementById('cupomCodigo').value=code;
+}
+
+function editCupom(id){
+  const c = cupons.find(x=>x.id===id); if(!c) return;
+  editCupomId = id;
+  document.getElementById('mCupomTitulo').textContent='✏️ EDITAR CUPOM';
+  document.getElementById('cupomCodigo').value=c.codigo;
+  document.getElementById('cupomTipo').value=c.tipo||'percentual';
+  updateCupomTipo();
+  document.getElementById('cupomValor').value=c.valor;
+  document.getElementById('cupomAtivo').value=String(c.ativo!==false);
+  document.getElementById('cupomDesc').value=c.descricao||'';
+  if(c.validade) document.getElementById('cupomValidade').value=c.validade.split('T')[0];
+  if(c.limite_usos){
+    document.getElementById('cupomLimTipo').value='limitado';
+    document.getElementById('cupomLimQtdWrap').style.display='block';
+    document.getElementById('cupomLimQtd').value=c.limite_usos;
+  } else {
+    document.getElementById('cupomLimTipo').value='ilimitado';
+    document.getElementById('cupomLimQtdWrap').style.display='none';
+  }
+  openModal('mCupom');
+}
+
+async function saveCupom(){
+  const codigo = document.getElementById('cupomCodigo').value.trim().toUpperCase();
+  const valor = parseFloat(document.getElementById('cupomValor').value);
+  if(!codigo){ toast('Informe o código do cupom!','warn'); return; }
+  if(!valor||valor<=0){ toast('Informe o valor do desconto!','warn'); return; }
+
+  const limTipo = document.getElementById('cupomLimTipo').value;
+  const limQtd = limTipo==='limitado' ? parseInt(document.getElementById('cupomLimQtd').value)||null : null;
+  const validade = document.getElementById('cupomValidade').value || null;
+
+  const data = {
+    codigo,
+    tipo: document.getElementById('cupomTipo').value,
+    valor,
+    limite_usos: limQtd,
+    validade,
+    ativo: document.getElementById('cupomAtivo').value==='true',
+    descricao: document.getElementById('cupomDesc').value||null
+  };
+
+  setBtnLoad('btnSaveCupom',true,'Salvando...');
+  try {
+    if(editCupomId){
+      await sbPatchById('cupons', editCupomId, data);
+    } else {
+      await sbPost('cupons',{...data, usos_realizados:0});
+    }
+    await loadCupons();
+    closeModal('mCupom');
+    toast(`✅ Cupom ${codigo} ${editCupomId?'atualizado':'criado'}!`,'success');
+    editCupomId=null;
+  } catch(e){ toast('Erro: '+e.message,'error',5000); }
+  finally{ setBtnLoad('btnSaveCupom',false,'💾 Salvar Cupom'); }
+}
+
+async function toggleCupom(id, novoAtivo){
+  try {
+    await sbPatchById('cupons',id,{ativo:novoAtivo});
+    await loadCupons();
+    toast(novoAtivo?'✅ Cupom ativado!':'🚫 Cupom desativado!', novoAtivo?'success':'warn');
+  } catch(e){ toast('Erro: '+e.message,'error'); }
+}
+
+async function deleteCupom(id, codigo){
+  confirm2('🗑️',`Remover cupom "${codigo}"?`,'Esta ação não pode ser desfeita.','btn-danger','Remover',async()=>{
+    try { await sbDelete('cupons',id); await loadCupons(); toast(`🗑️ Cupom ${codigo} removido.`,'error'); }
+    catch(e){ toast('Erro: '+e.message,'error'); }
+  });
+}
 
 // =====================================================================
 // INIT
