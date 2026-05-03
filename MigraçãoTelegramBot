@@ -1,0 +1,41 @@
+-- ============================================================
+-- Migração: Telegram Bot — colunas de alertas e username
+-- Seguro para re-executar
+-- ============================================================
+
+-- Colunas na tabela configuracoes
+ALTER TABLE configuracoes
+  ADD COLUMN IF NOT EXISTS telegram_username    TEXT,
+  ADD COLUMN IF NOT EXISTS tg_alert_dias1       INTEGER DEFAULT 3,
+  ADD COLUMN IF NOT EXISTS tg_alert_dias2       INTEGER DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS tg_alert_vencidos    BOOLEAN DEFAULT TRUE;
+
+-- Garantir que telegram_chat_id existe (criada no script anterior)
+ALTER TABLE configuracoes
+  ADD COLUMN IF NOT EXISTS telegram_chat_id TEXT;
+
+-- Confirma estrutura da tabela de vínculos (criada no script anterior)
+CREATE TABLE IF NOT EXISTS telegram_vinculos (
+  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  codigo     TEXT NOT NULL UNIQUE,
+  expira_em  TIMESTAMPTZ NOT NULL,
+  usado      BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_telegram_vinculos_codigo
+  ON telegram_vinculos(codigo) WHERE usado = FALSE;
+
+-- RLS na tabela de vínculos (revendedor só vê os próprios)
+ALTER TABLE telegram_vinculos ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "vinculos_own" ON telegram_vinculos;
+CREATE POLICY "vinculos_own" ON telegram_vinculos
+  FOR ALL USING (auth.uid() = user_id);
+
+-- Service role pode ler/escrever (para a Edge Function)
+DROP POLICY IF EXISTS "vinculos_service" ON telegram_vinculos;
+CREATE POLICY "vinculos_service" ON telegram_vinculos
+  FOR ALL USING (true)
+  WITH CHECK (true);
