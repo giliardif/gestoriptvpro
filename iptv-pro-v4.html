@@ -1179,75 +1179,16 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.7;
           </div>
         </div>
         <div class="panel">
-          <div class="panel-header"><div class="panel-title">🤖 TELEGRAM BOT</div></div>
-          <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
-            <!-- Status da conexão -->
-            <div id="tgStatusBox" style="background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div id="tgStatusDot" style="width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0"></div>
-                <div>
-                  <div id="tgStatusLabel" style="font-size:12.5px;font-weight:600">Não conectado</div>
-                  <div id="tgStatusUser" style="font-size:11px;color:var(--muted)">Vincule sua conta do Telegram</div>
-                </div>
-              </div>
-              <div style="display:flex;gap:6px">
-                <button class="btn btn-primary btn-sm" id="btnConectarTg" onclick="gerarCodigoTg()">🔗 Conectar</button>
-                <button class="btn btn-ghost btn-sm" id="btnDesconectarTg" onclick="desconectarTg()" style="display:none">✕ Desconectar</button>
-              </div>
+          <div class="panel-header"><div class="panel-title">TELEGRAM BOT</div></div>
+          <div class="panel-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px">
+              <div class="form-group"><label>Token do Bot</label><input id="cfgTgt" placeholder="123456:ABC..."></div>
+              <div class="form-group"><label>Chat ID Padrão</label><input id="cfgTgc" placeholder="-100xxxxxx"></div>
             </div>
-            <!-- Código de vinculação -->
-            <div id="tgCodigoBox" style="display:none;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.25);border-radius:9px;padding:12px 14px">
-              <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Código de vinculação (expira em 10 min)</div>
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-                <div id="tgCodigo" style="font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:var(--accent);letter-spacing:4px">——————</div>
-                <button class="btn btn-ghost btn-sm" onclick="copiarCodigoTg()" title="Copiar">📋</button>
-              </div>
-              <div style="font-size:12px;color:var(--text)">Abra o bot <strong>@iptvpro_bot</strong> no Telegram e envie:</div>
-              <div style="font-family:monospace;font-size:13px;color:var(--accent2);margin-top:4px">/conectar <span id="tgCodigoInline">——</span></div>
-              <div style="margin-top:8px;display:flex;gap:6px">
-                <button class="btn btn-ghost btn-sm" onclick="gerarCodigoTg()">🔄 Novo código</button>
-                <button class="btn btn-ghost btn-sm" onclick="verificarVinculoTg()">✅ Verificar</button>
-              </div>
+            <div style="display:flex;gap:7px">
+              <button class="btn btn-success btn-sm" onclick="testTg()">🧪 Testar</button>
+              <button class="btn btn-primary btn-sm" onclick="saveConfig()">💾 Salvar</button>
             </div>
-            <!-- Alertas automáticos -->
-            <div style="border-top:1px solid var(--border);padding-top:12px">
-              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">⚠️ Alertas Automáticos de Vencimento</div>
-              <div style="display:flex;flex-direction:column;gap:8px">
-                <div style="display:flex;align-items:center;justify-content:space-between">
-                  <span style="font-size:12.5px">Aviso antecipado (padrão)</span>
-                  <div style="display:flex;align-items:center;gap:6px">
-                    <input type="number" id="cfgAlertDias1" value="3" min="1" max="30" style="width:50px;text-align:center" onchange="saveConfig()">
-                    <span style="font-size:11px;color:var(--muted)">dias antes</span>
-                  </div>
-                </div>
-                <div style="display:flex;align-items:center;justify-content:space-between">
-                  <span style="font-size:12.5px">Aviso final</span>
-                  <div style="display:flex;align-items:center;gap:6px">
-                    <input type="number" id="cfgAlertDias2" value="1" min="1" max="30" style="width:50px;text-align:center" onchange="saveConfig()">
-                    <span style="font-size:11px;color:var(--muted)">dias antes</span>
-                  </div>
-                </div>
-                <div style="display:flex;align-items:center;justify-content:space-between">
-                  <span style="font-size:12.5px">Alertar vencidos</span>
-                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-                    <input type="checkbox" id="cfgAlertVencidos" onchange="saveConfig()" style="width:auto">
-                    <span style="font-size:11px;color:var(--muted)">sim</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <!-- Token (oculto, campo técnico) -->
-            <details style="border-top:1px solid var(--border);padding-top:10px">
-              <summary style="font-size:11px;color:var(--muted);cursor:pointer;user-select:none">⚙️ Configuração avançada</summary>
-              <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
-                <div class="form-group"><label>Token do Bot</label><input id="cfgTgt" placeholder="123456:ABC..." type="password"></div>
-                <div class="form-group" style="display:none"><label>Chat ID</label><input id="cfgTgc" placeholder=""></div>
-                <div style="display:flex;gap:7px">
-                  <button class="btn btn-success btn-sm" onclick="testTg()">🧪 Testar</button>
-                  <button class="btn btn-primary btn-sm" onclick="saveConfig()">💾 Salvar token</button>
-                </div>
-              </div>
-            </details>
           </div>
         </div>
         <div class="panel">
@@ -1271,7 +1212,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.7;
               <span style="font-size:13px">Alertar vencendo em (dias)</span>
               <input type="number" id="cfgAlertDays" value="7" style="width:55px;text-align:center" onchange="saveConfig()">
             </div>
-            <div style="font-size:11px;color:var(--muted)">⚙️ Alertas detalhados do Telegram em: Configurações → Telegram Bot</div>
           </div>
         </div>
       </div>
@@ -2994,36 +2934,6 @@ function renderConfig() {
   set('cfgTgt', cfg.telegram_bot_token);
   set('cfgTgc', cfg.telegram_chat_id);
   const ad = document.getElementById('cfgAlertDays'); if (ad) ad.value = cfg.notif_vencimento_dias || 7;
-  // Novos campos de alertas Telegram
-  const d1 = document.getElementById('cfgAlertDias1'); if (d1) d1.value = cfg.tg_alert_dias1 ?? 3;
-  const d2 = document.getElementById('cfgAlertDias2'); if (d2) d2.value = cfg.tg_alert_dias2 ?? 1;
-  const av = document.getElementById('cfgAlertVencidos'); if (av) av.checked = cfg.tg_alert_vencidos !== false;
-  // Status conexão Telegram
-  renderTgStatus();
-}
-
-function renderTgStatus() {
-  const dot = document.getElementById('tgStatusDot');
-  const label = document.getElementById('tgStatusLabel');
-  const sub = document.getElementById('tgStatusUser');
-  const btnC = document.getElementById('btnConectarTg');
-  const btnD = document.getElementById('btnDesconectarTg');
-  if (!dot) return;
-  if (cfg.telegram_chat_id) {
-    dot.style.background = '#00cc6a';
-    label.textContent = 'Conectado';
-    label.style.color = 'var(--green)';
-    sub.textContent = cfg.telegram_username ? '@' + cfg.telegram_username : 'Chat ID: ' + cfg.telegram_chat_id;
-    if (btnC) { btnC.textContent = '🔄 Reconectar'; }
-    if (btnD) btnD.style.display = '';
-  } else {
-    dot.style.background = '#555';
-    label.textContent = 'Não conectado';
-    label.style.color = '';
-    sub.textContent = 'Vincule sua conta do Telegram';
-    if (btnC) { btnC.textContent = '🔗 Conectar'; }
-    if (btnD) btnD.style.display = 'none';
-  }
 }
 
 async function saveConfig() {
@@ -3036,9 +2946,6 @@ async function saveConfig() {
     telegram_bot_token: document.getElementById('cfgTgt').value,
     telegram_chat_id: document.getElementById('cfgTgc').value,
     notif_vencimento_dias: +document.getElementById('cfgAlertDays').value,
-    tg_alert_dias1: +(document.getElementById('cfgAlertDias1')?.value ?? 3),
-    tg_alert_dias2: +(document.getElementById('cfgAlertDias2')?.value ?? 1),
-    tg_alert_vencidos: document.getElementById('cfgAlertVencidos')?.checked ?? true,
     updated_at: new Date().toISOString()
   };
   try {
@@ -3356,66 +3263,6 @@ async function tgNotificarRenovacao(cid, plano, venc) {
   const c = clients.find(x => x.id === cid); if (!c || !cfg.telegram_bot_token) return;
   const chatId = c.telegram_id || cfg.telegram_chat_id; if (!chatId) return;
   try { await tgSend(chatId, `✅ *Renovação confirmada!*\n\nOlá ${c.nome.split(' ')[0]}!\nPlano: *${plano}*\nNovo vencimento: *${venc}*\n\nObrigado! 📡`); } catch (e) { }
-}
-
-// ── Vinculação Telegram ──────────────────────────────────────────────
-async function gerarCodigoTg() {
-  if (!currentUser) return;
-  try {
-    // Gera código alfanumérico de 6 chars
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let codigo = '';
-    for (let i = 0; i < 6; i++) codigo += chars[Math.floor(Math.random() * chars.length)];
-    const expira = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-    // Salva no banco (deleta anteriores do mesmo user primeiro)
-    await sbDeleteQuery('telegram_vinculos', `?user_id=eq.${currentUser.id}&usado=eq.false`);
-    await sbPost('telegram_vinculos', { user_id: currentUser.id, codigo, expira_em: expira, usado: false });
-    // Exibe na UI
-    document.getElementById('tgCodigo').textContent = codigo;
-    document.getElementById('tgCodigoInline').textContent = codigo;
-    document.getElementById('tgCodigoBox').style.display = '';
-    toast('🔗 Código gerado! Válido por 10 minutos.', 'info', 5000);
-  } catch (e) { toast('Erro ao gerar código: ' + e.message, 'error'); }
-}
-
-function copiarCodigoTg() {
-  const c = document.getElementById('tgCodigo').textContent;
-  navigator.clipboard.writeText('/conectar ' + c).then(() => toast('📋 Copiado!', 'success', 2000));
-}
-
-async function verificarVinculoTg() {
-  if (!currentUser) return;
-  try {
-    await loadConfig();
-    if (cfg.telegram_chat_id) {
-      document.getElementById('tgCodigoBox').style.display = 'none';
-      renderTgStatus();
-      toast('✅ Telegram vinculado com sucesso!', 'success', 4000);
-    } else {
-      toast('⏳ Ainda não vinculado. Envie /conectar CÓDIGO no bot.', 'info', 4000);
-    }
-  } catch (e) { toast('Erro: ' + e.message, 'error'); }
-}
-
-async function desconectarTg() {
-  if (!currentUser) return;
-  if (!confirm('Deseja desconectar o Telegram?')) return;
-  try {
-    const data = { telegram_chat_id: null, telegram_username: null, updated_at: new Date().toISOString() };
-    if (cfg.id) await sbPatch('configuracoes', cfg.id, data);
-    Object.assign(cfg, data);
-    renderTgStatus();
-    toast('✅ Telegram desconectado.', 'info');
-  } catch (e) { toast('Erro: ' + e.message, 'error'); }
-}
-
-// Helper DELETE com filtro customizado (usado na vinculação Telegram)
-async function sbDeleteQuery(table, query) {
-  return sbFetch(async () => {
-    const r = await fetch(`${SB_URL}/rest/v1/${table}${query}`, { method: 'DELETE', headers: getHeaders() });
-    if (!r.ok) throw new Error(await r.text());
-    return true;
-  });
 }
 
 async function testTg() {
@@ -5084,8 +4931,8 @@ async function waSendMsg(numero, texto) {
     const r = await fetch(`${url}/message/sendText/${inst}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': key },
-      // Evolution v1.8.x: number sem @s.whatsapp.net, texto em campo "text"
-      body: JSON.stringify({ number: num, text: texto })
+      // Evolution v1.x: payload com textMessage.text
+      body: JSON.stringify({ number: num, textMessage: { text: texto } })
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.message || d.error || `HTTP ${r.status}`);
