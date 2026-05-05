@@ -4824,6 +4824,9 @@ async function waLoadConfig() {
     if (d.template_aviso_3dias) document.getElementById('waTplA3').value = d.template_aviso_3dias;
     if (d.template_aviso_1dia)  document.getElementById('waTplA1').value = d.template_aviso_1dia;
     if (d.template_confirmacao) document.getElementById('waTplCP').value = d.template_confirmacao;
+    if ((d.provedor || 'callmebot') === 'evolution' && d.evolution_instance) {
+      setTimeout(() => waEvCheckStatus(), 500);
+    }
   } catch(e) { console.warn('waLoadConfig:', e); }
 }
 
@@ -4854,12 +4857,48 @@ async function waLoadStats() {
 
 async function waSalvar() {
   if (!currentUser) { toast('⚠️ Faça login primeiro', 'warn'); return; }
+  const novaInstancia = document.getElementById('waEvInst').value.trim() || null;
+
+  // Verificar se instância Evolution mudou para deletar a anterior no servidor
+  if (waProv === 'evolution' && novaInstancia) {
+    try {
+      const atual = await waFetch(`notificacoes_config?user_id=eq.${currentUser.id}&limit=1`);
+      const instanciaAtual = atual?.[0]?.evolution_instance;
+      if (instanciaAtual && instanciaAtual !== novaInstancia) {
+        const confirmar = confirm(`⚠️ Você está trocando a instância
+
+De: ${instanciaAtual}
+Para: ${novaInstancia}
+
+A instância anterior será deletada do servidor Evolution.
+Confirmar?`);
+        if (!confirmar) return;
+        // Deletar instância antiga no servidor Evolution
+        const url = document.getElementById('waEvUrl').value.trim().replace(/\/$/, '');
+        const key = document.getElementById('waEvKey').value.trim();
+        try {
+          const del = await fetch(`${url}/instance/delete/${instanciaAtual}`, {
+            method: 'DELETE',
+            headers: { 'apikey': key }
+          });
+          if (del.ok) {
+            toast(`🗑️ Instância ${instanciaAtual} deletada do servidor`, 'success');
+          } else {
+            console.warn('Falha ao deletar instância antiga:', await del.text());
+            toast(`⚠️ Não foi possível deletar ${instanciaAtual} do servidor`, 'warn');
+          }
+        } catch(e) {
+          console.warn('Erro ao deletar instância antiga:', e);
+          toast('⚠️ Erro ao deletar instância antiga — continuando salvamento', 'warn');
+        }
+      }
+    } catch(e) { console.warn('Erro ao verificar instância atual:', e); }
+  }
+
   const payload = {
     user_id: currentUser.id, provedor: waProv,
     callmebot_apikey:    document.getElementById('waCbKey').value.trim()||null,
-    evolution_url:       null,  // gerenciada pelo admin, não persiste no banco
-    evolution_instance:  document.getElementById('waEvInst').value.trim()||null,
-    evolution_apikey:    null,  // gerenciada pelo admin, não persiste no banco
+    evolution_instance:  novaInstancia,
     twilio_sid:          document.getElementById('waTwSid').value.trim()||null,
     twilio_token:        document.getElementById('waTwToken').value.trim()||null,
     twilio_from:         document.getElementById('waTwFrom').value.trim()||null,
@@ -4874,12 +4913,14 @@ async function waSalvar() {
     updated_at: new Date().toISOString(),
   };
   try {
-    await waFetch('notificacoes_config', {
+    await waFetch('notificacoes_config?on_conflict=user_id', {
       method: 'POST',
       headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(payload)
     });
     toast('✅ Configurações WA salvas!', 'success');
+    // Atualizar status após salvar nova instância
+    if (waProv === 'evolution' && novaInstancia) setTimeout(() => waEvCheckStatus(), 800);
   } catch(e) { toast('❌ Erro: ' + e.message, 'error'); }
 }
 
@@ -4931,6 +4972,7 @@ async function waSendMsg(numero, texto) {
     const r = await fetch(`${url}/message/sendText/${inst}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': key },
+      // Evolution v1.8.x: number sem @s.whatsapp.net, texto em campo "text"
       // Evolution v1.x: payload com textMessage.text
       body: JSON.stringify({ number: num, textMessage: { text: texto } })
     });
@@ -5148,13 +5190,7 @@ function waTab(id, btn) {
   if (id === 'historico') waLoadHist();
 }
 
-function waSelProv(id) {
-  waProv = id;
-  ['callmebot','evolution','twilio'].forEach(p => {
-    document.getElementById('waprov-' + p).classList.toggle('sel', p === id);
-    document.getElementById('waF-' + p).style.display = p === id ? 'block' : 'none';
-  });
-}
+
 
 
 </script>
