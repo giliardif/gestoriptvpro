@@ -1,6 +1,21 @@
 {
-  "rewrites": [
-    { "source": "/", "destination": "/iptv-pro-v4.html" },
-    { "source": "/admin", "destination": "/iptv-admin.html" }
+  "version": 2,
+  "routes": [
+    {
+      "src": "/css/(.*)",
+      "dest": "/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/js/$1"
+    },
+    {
+      "src": "/admin",
+      "dest": "/iptv-admin.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
