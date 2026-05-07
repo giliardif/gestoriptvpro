@@ -2,15 +2,50 @@
 
 
 gestoriptvpro/
-├── index.html              (542 linhas — era 5.200)
+├── index.html
+├── iptv-admin.html
 ├── vercel.json
-├── iptv-admin.html         (mantém o existente)
+│
 ├── css/
-│   └── iptv-styles.css     (510 linhas)
+│   └── iptv-styles.css
+│
 └── js/
-    ├── iptv-core.js        (567 linhas) — Supabase, Auth, State, Utils, reloadAll
-    ├── iptv-ui.js          (441 linhas) — Toast, Modal, Tema, Sidebar, Charts, Notifs
-    ├── iptv-clientes.js    (637 linhas) — CRUD Clientes, Tabela, Planos, CSV, Telegram
-    ├── iptv-financeiro.js  (649 linhas) — Pagamentos, Fluxo de Caixa, Custos, Forecast
-    ├── iptv-whatsapp.js    (408 linhas) — WA Drawer, Evolution, Twilio, CallMeBot
-    └── iptv-mercadopago.js (359 linhas) — Cupom, PIX, Cartão, Polling
+    ├── iptv-core.js
+    │   ├── Supabase Client
+    │   ├── Authentication
+    │   ├── Global State
+    │   ├── Utilities
+    │   └── reloadAll()
+    │
+    ├── iptv-ui.js
+    │   ├── Toast Notifications
+    │   ├── Modal System
+    │   ├── Theme Manager
+    │   ├── Sidebar Controls
+    │   ├── Charts
+    │   └── Notifications
+    │
+    ├── iptv-clientes.js
+    │   ├── CRUD Clientes
+    │   ├── Tabela Dinâmica
+    │   ├── Gestão de Planos
+    │   ├── Exportação CSV
+    │   └── Integração Telegram
+    │
+    ├── iptv-financeiro.js
+    │   ├── Gestão de Pagamentos
+    │   ├── Fluxo de Caixa
+    │   ├── Controle de Custos
+    │   └── Forecast Financeiro
+    │
+    ├── iptv-whatsapp.js
+    │   ├── WhatsApp Drawer
+    │   ├── Evolution API
+    │   ├── Twilio Integration
+    │   └── CallMeBot Support
+    │
+    └── iptv-mercadopago.js
+        ├── Cupons
+        ├── PIX
+        ├── Cartão
+        └── Payment Polling
