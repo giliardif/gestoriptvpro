@@ -1,14 +1,10 @@
-# controleclientes
-
-
+```text
 gestoriptvpro/
 ├── index.html
 ├── iptv-admin.html
 ├── vercel.json
-│
 ├── css/
 │   └── iptv-styles.css
-│
 └── js/
     ├── iptv-core.js
     │   ├── Supabase Client
@@ -49,3 +45,4 @@ gestoriptvpro/
         ├── PIX
         ├── Cartão
         └── Payment Polling
+```
