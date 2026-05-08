@@ -1,0 +1,388 @@
+// Edge Function: telegram-bot
+// Deploy: supabase functions deploy telegram-bot
+// Registrar webhook: https://api.telegram.org/bot{TOKEN}/setWebhook?url=https://qzprfrbfabqczhzwwpkw.supabase.co/functions/v1/telegram-bot
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+// ── Helpers Telegram ────────────────────────────────────────────────
+async function tgSend(chat_id: string | number, text: string, extra: any = {}) {
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id, text, parse_mode: 'Markdown', ...extra }),
+  });
+}
+async function tgEdit(chat_id: string | number, message_id: number, text: string, extra: any = {}) {
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id, message_id, text, parse_mode: 'Markdown', ...extra }),
+  });
+}
+async function tgAnswer(callback_query_id: string, text?: string) {
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ callback_query_id, text }),
+  });
+}
+
+// ── Helpers gerais ──────────────────────────────────────────────────
+function fmtDate(iso: string) {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('T')[0].split('-');
+  return `${d}/${m}/${y}`;
+}
+function diasAte(iso: string) {
+  if (!iso) return 0;
+  return Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);
+}
+function statusIcon(s: string) {
+  return ({ ativo: '🟢', vencido: '🔴', suspenso: '🟡', cancelado: '⚫', trial: '🔵' } as any)[s] || '⚪';
+}
+
+// ── Buscar revendedor pelo chat_id ──────────────────────────────────
+async function getRevendedor(chat_id: string | number) {
+  const { data } = await sb.from('configuracoes')
+    .select('user_id, telegram_username')
+    .eq('telegram_chat_id', String(chat_id))
+    .limit(1).single();
+  return data;
+}
+
+// ── Buscar cliente por telefone ou nome ─────────────────────────────
+async function buscarCliente(userId: string, busca: string) {
+  const b = busca.replace(/\D/g, '');
+  let query = sb.from('clientes').select('*').eq('user_id', userId);
+  if (b.length >= 8) query = query.or(`telefone.ilike.%${b}%,whatsapp.ilike.%${b}%`);
+  else query = query.ilike('nome', `%${busca}%`);
+  const { data } = await query.limit(5);
+  return data || [];
+}
+
+// ── Renovar cliente ─────────────────────────────────────────────────
+async function renovarCliente(userId: string, clienteId: string, dias: number) {
+  // 1. Buscar dados atuais do cliente
+  const { data: c } = await sb.from('clientes').select('*').eq('id', clienteId).eq('user_id', userId).single();
+  if (!c) throw new Error('Cliente não encontrado');
+
+  // 2. Calcular novo vencimento
+  const base = c.data_vencimento && new Date(c.data_vencimento) > new Date()
+    ? new Date(c.data_vencimento) : new Date();
+  base.setDate(base.getDate() + dias);
+  const novoVenc = base.toISOString().split('T')[0];
+
+  // 3. Atualizar cliente
+  await sb.from('clientes')
+    .update({ data_vencimento: novoVenc, status: 'ativo', updated_at: new Date().toISOString() })
+    .eq('id', clienteId).eq('user_id', userId);
+
+  // 4. Buscar valor do plano para registrar no pagamento
+  let valorPlano = 0;
+  let planoId: string | null = null;
+  if (c.plano_id) {
+    const { data: plano } = await sb.from('planos').select('id, preco').eq('id', c.plano_id).single();
+    if (plano) {
+      valorPlano = plano.preco || 0;
+      planoId = plano.id;
+    }
+  }
+
+  // 5. Registrar pagamento completo ← CORREÇÃO PRINCIPAL
+  await sb.from('pagamentos').insert({
+    user_id:          userId,
+    cliente_id:       clienteId,
+    plano_id:         planoId,
+    valor:            valorPlano,
+    metodo_pagamento: 'Telegram',
+    status:           'pago',
+    data_pagamento:   new Date().toISOString().split('T')[0],
+    data_vencimento:  novoVenc,
+    observacoes:      `Renovado ${dias}d via Telegram Bot`,
+  });
+
+  // 6. Registrar histórico
+  await sb.from('historico_clientes').insert({
+    user_id:    userId,
+    cliente_id: clienteId,
+    tipo:       'Renovação',
+    descricao:  `Renovado ${dias} dias via Telegram. Vence: ${novoVenc}`,
+  });
+
+  return { ...c, data_vencimento: novoVenc, status: 'ativo', valor_plano: valorPlano };
+}
+
+// ── Disparar WhatsApp via provider configurado ──────────────────────
+async function dispararWhatsApp(userId: string, clienteId: string): Promise<void> {
+  const { data: c } = await sb.from('clientes').select('*').eq('id', clienteId).single();
+  if (!c) throw new Error('Cliente não encontrado');
+  const numero = (c.whatsapp || c.telefone || '').replace(/\D/g, '');
+  if (!numero) throw new Error('Cliente sem número WhatsApp/telefone');
+
+  const { data: waCfg } = await sb.from('notificacoes_config')
+    .select('*').eq('user_id', userId).limit(1).single();
+  if (!waCfg) throw new Error('WhatsApp não configurado no painel');
+
+  const dl = diasAte(c.data_vencimento);
+  const templateRaw = dl > 0
+    ? (waCfg.template_vencendo || 'Olá {nome}! Seu plano vence em {dias} dia(s) ({vencimento}). Entre em contato para renovar! 📡')
+    : (waCfg.template_vencimento || 'Olá {nome}! Seu plano IPTV venceu em {vencimento}. Renove agora! 📡');
+
+  const msg = templateRaw
+    .replace(/{nome}/g,       c.nome.split(' ')[0])
+    .replace(/{plano}/g,      c.plano_nome || '—')
+    .replace(/{vencimento}/g, fmtDate(c.data_vencimento))
+    .replace(/{dias}/g,       String(Math.abs(dl)));
+
+  const provider = waCfg.provider || 'callmebot';
+
+  if (provider === 'callmebot') {
+    const r = await fetch(`https://api.callmebot.com/whatsapp.php?phone=${numero}&text=${encodeURIComponent(msg)}&apikey=${waCfg.callmebot_apikey}`);
+    if (!r.ok) throw new Error(`CallMeBot erro ${r.status}`);
+  } else if (provider === 'evolution') {
+    const base = waCfg.evolution_url?.replace(/\/$/, '');
+    const r = await fetch(`${base}/message/sendText/${waCfg.evolution_instance}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: waCfg.evolution_key },
+      body: JSON.stringify({ number: `55${numero}`, text: msg }),
+    });
+    if (!r.ok) throw new Error(`Evolution API erro ${r.status}`);
+  } else if (provider === 'twilio') {
+    const r = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${waCfg.twilio_sid}/Messages.json`, {
+      method: 'POST',
+      headers: { 'Authorization': `Basic ${btoa(waCfg.twilio_sid + ':' + waCfg.twilio_token)}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ From: `whatsapp:+${waCfg.twilio_from}`, To: `whatsapp:+55${numero}`, Body: msg }),
+    });
+    if (!r.ok) throw new Error(`Twilio erro ${r.status}`);
+  }
+
+  await sb.from('notificacoes_fila').insert({
+    user_id:    userId,
+    cliente_id: clienteId,
+    tipo:       'vencimento',
+    status:     'enviado',
+    mensagem:   msg,
+    enviado_em: new Date().toISOString(),
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// HANDLER PRINCIPAL
+// ══════════════════════════════════════════════════════════════════════
+Deno.serve(async (req) => {
+  if (req.method !== 'POST') return new Response('ok');
+  let body: any;
+  try { body = await req.json(); } catch { return new Response('ok'); }
+
+  // ── Callback Query (botão inline) ───────────────────────────────
+  if (body.callback_query) {
+    const cq     = body.callback_query;
+    const chatId = cq.message.chat.id;
+    const msgId  = cq.message.message_id;
+    const data   = cq.data as string;
+    await tgAnswer(cq.id);
+
+    const rev = await getRevendedor(chatId);
+    if (!rev) { await tgSend(chatId, '❌ Conta não vinculada. Use /start.'); return new Response('ok'); }
+
+    // wa:{clienteId}
+    if (data.startsWith('wa:')) {
+      const clienteId = data.slice(3);
+      try {
+        await dispararWhatsApp(rev.user_id, clienteId);
+        await tgEdit(chatId, msgId, cq.message.text + '\n\n✅ *WhatsApp enviado com sucesso!*', { reply_markup: { inline_keyboard: [] } });
+      } catch (e: any) {
+        await tgEdit(chatId, msgId, cq.message.text + `\n\n❌ *Erro WhatsApp:* ${e.message}`, { reply_markup: { inline_keyboard: [] } });
+      }
+    }
+
+    // renovar:{clienteId}:{dias}
+    if (data.startsWith('renovar:')) {
+      const [, clienteId, diasStr] = data.split(':');
+      const dias = parseInt(diasStr) || 30;
+      try {
+        const c = await renovarCliente(rev.user_id, clienteId, dias);
+        const valorTxt = c.valor_plano > 0 ? `\n💰 Valor: R$ ${Number(c.valor_plano).toFixed(2).replace('.', ',')}` : '';
+        await tgEdit(chatId, msgId,
+          `✅ *Renovação concluída!*\n\n👤 ${c.nome}\n📅 Novo vencimento: *${fmtDate(c.data_vencimento)}*\n📦 Plano: ${c.plano_nome || '—'}${valorTxt}`,
+          { reply_markup: { inline_keyboard: [[{ text: '📱 Avisar cliente no WhatsApp', callback_data: `wa:${clienteId}` }]] } }
+        );
+      } catch (e: any) { await tgSend(chatId, `❌ Erro na renovação: ${e.message}`); }
+    }
+
+    if (data === 'cancelar') {
+      await tgEdit(chatId, msgId, '❌ *Operação cancelada.*', { reply_markup: { inline_keyboard: [] } });
+    }
+
+    return new Response('ok');
+  }
+
+  // ── Mensagem de texto ────────────────────────────────────────────
+  const msg = body.message;
+  if (!msg?.text) return new Response('ok');
+
+  const chatId   = msg.chat.id;
+  const text     = msg.text.trim();
+  const username = msg.from?.username || '';
+  const parts    = text.split(/\s+/);
+  const cmd      = parts[0].toLowerCase().split('@')[0];
+
+  // /start
+  if (cmd === '/start') {
+    await tgSend(chatId,
+      `🤖 *Bem-vindo ao IPTV PRO Bot!*\n\n` +
+      `Para vincular sua conta:\n` +
+      `1. Acesse o painel → *Configurações → Telegram Bot*\n` +
+      `2. Clique em *Conectar* e copie o código\n` +
+      `3. Envie aqui: \`/conectar SEU_CODIGO\`\n\n` +
+      `📋 Comandos disponíveis após vincular:\n` +
+      `• /renovar \`tel\` \`dias\`\n` +
+      `• /cliente \`tel ou nome\`\n` +
+      `• /vencendo\n` +
+      `• /resumo`
+    );
+    return new Response('ok');
+  }
+
+  // /conectar CODIGO
+  if (cmd === '/conectar') {
+    const codigo = parts[1]?.toUpperCase();
+    if (!codigo) { await tgSend(chatId, '❌ Informe o código. Ex: `/conectar ABC123`'); return new Response('ok'); }
+
+    const { data: vinculo } = await sb.from('telegram_vinculos')
+      .select('*').eq('codigo', codigo).eq('usado', false)
+      .gt('expira_em', new Date().toISOString()).limit(1).single();
+
+    if (!vinculo) { await tgSend(chatId, '❌ Código inválido ou expirado. Gere um novo no painel.'); return new Response('ok'); }
+
+    await sb.from('telegram_vinculos').update({ usado: true }).eq('id', vinculo.id);
+
+    const tgData = { telegram_chat_id: String(chatId), telegram_username: username, updated_at: new Date().toISOString() };
+    const { data: cfgExist } = await sb.from('configuracoes').select('id').eq('user_id', vinculo.user_id).limit(1).single();
+    if (cfgExist) await sb.from('configuracoes').update(tgData).eq('id', cfgExist.id);
+    else await sb.from('configuracoes').insert({ user_id: vinculo.user_id, ...tgData });
+
+    await tgSend(chatId, `✅ *Conta vinculada com sucesso!*\n\nAgora você pode gerenciar seus clientes por aqui.\nUse /ajuda para ver os comandos.`);
+    return new Response('ok');
+  }
+
+  // Verifica autenticação para demais comandos
+  const rev = await getRevendedor(chatId);
+  if (!rev) { await tgSend(chatId, '❌ Conta não vinculada. Use /start para começar.'); return new Response('ok'); }
+  const userId = rev.user_id;
+
+  // /ajuda
+  if (cmd === '/ajuda' || cmd === '/help') {
+    await tgSend(chatId,
+      `📋 *Comandos disponíveis:*\n\n` +
+      `• /renovar \`tel\` \`dias\` — Renova cliente\n` +
+      `  _Ex: /renovar 11999999999 30_\n\n` +
+      `• /cliente \`tel ou nome\` — Consulta status\n` +
+      `  _Ex: /cliente João_\n\n` +
+      `• /vencendo \`[dias]\` — Lista vencendo\n` +
+      `  _Ex: /vencendo 7_\n\n` +
+      `• /resumo — Dashboard rápido`
+    );
+    return new Response('ok');
+  }
+
+  // /resumo
+  if (cmd === '/resumo') {
+    const { data: tots } = await sb.from('clientes').select('status').eq('user_id', userId);
+    const ativos    = tots?.filter(c => c.status === 'ativo').length   || 0;
+    const vencidos  = tots?.filter(c => c.status === 'vencido').length || 0;
+    const suspensos = tots?.filter(c => c.status === 'suspenso').length|| 0;
+    const total     = tots?.length || 0;
+    const hoje = new Date(); const em7 = new Date(); em7.setDate(em7.getDate() + 7);
+    const { data: venc7 } = await sb.from('clientes').select('id').eq('user_id', userId)
+      .in('status', ['ativo','trial'])
+      .gte('data_vencimento', hoje.toISOString().split('T')[0])
+      .lte('data_vencimento', em7.toISOString().split('T')[0]);
+    await tgSend(chatId,
+      `📊 *Dashboard Rápido*\n\n` +
+      `👥 Total: *${total}*\n` +
+      `🟢 Ativos: *${ativos}*\n` +
+      `🔴 Vencidos: *${vencidos}*\n` +
+      `🟡 Suspensos: *${suspensos}*\n` +
+      `⏰ Vencendo em 7 dias: *${venc7?.length || 0}*`
+    );
+    return new Response('ok');
+  }
+
+  // /vencendo [dias]
+  if (cmd === '/vencendo') {
+    const dias = parseInt(parts[1]) || 7;
+    const hoje = new Date(); const limite = new Date(); limite.setDate(limite.getDate() + dias);
+    const { data: lista } = await sb.from('clientes').select('*').eq('user_id', userId)
+      .in('status', ['ativo','trial'])
+      .gte('data_vencimento', hoje.toISOString().split('T')[0])
+      .lte('data_vencimento', limite.toISOString().split('T')[0])
+      .order('data_vencimento', { ascending: true }).limit(15);
+
+    if (!lista?.length) { await tgSend(chatId, `✅ Nenhum cliente vencendo nos próximos ${dias} dias.`); return new Response('ok'); }
+
+    const linhas = lista.map(c => {
+      const d = diasAte(c.data_vencimento);
+      return `${statusIcon(c.status)} *${c.nome}*\n   📅 ${fmtDate(c.data_vencimento)} (${d}d)\n   📱 ${c.whatsapp || c.telefone || '—'}`;
+    }).join('\n\n');
+    await tgSend(chatId, `⏰ *Vencendo em ${dias} dias (${lista.length}):*\n\n${linhas}`);
+    return new Response('ok');
+  }
+
+  // /cliente [busca]
+  if (cmd === '/cliente') {
+    const busca = parts.slice(1).join(' ');
+    if (!busca) { await tgSend(chatId, '❌ Informe telefone ou nome. Ex: `/cliente 11999999999`'); return new Response('ok'); }
+    const lista = await buscarCliente(userId, busca);
+    if (!lista.length) { await tgSend(chatId, `❌ Nenhum cliente encontrado para: *${busca}*`); return new Response('ok'); }
+    for (const c of lista.slice(0, 3)) {
+      const dl = diasAte(c.data_vencimento);
+      const dlTxt = dl >= 0 ? `Vence em *${dl} dias*` : `*Vencido há ${-dl} dias*`;
+      await tgSend(chatId,
+        `${statusIcon(c.status)} *${c.nome}*\n📦 ${c.plano_nome || '—'}\n📅 ${dlTxt} (${fmtDate(c.data_vencimento)})\n📱 ${c.whatsapp || c.telefone || '—'}`,
+        { reply_markup: { inline_keyboard: [[
+          { text: '🔄 Renovar 30d', callback_data: `renovar:${c.id}:30` },
+          { text: '📱 Avisar WA',   callback_data: `wa:${c.id}` }
+        ]] } }
+      );
+    }
+    return new Response('ok');
+  }
+
+  // /renovar [busca] [dias]
+  if (cmd === '/renovar') {
+    const diasStr = parts[parts.length - 1];
+    const dias    = /^\d+$/.test(diasStr) ? parseInt(diasStr) : 30;
+    const busca   = /^\d+$/.test(diasStr) ? parts.slice(1, -1).join(' ') : parts.slice(1).join(' ');
+
+    if (!busca) { await tgSend(chatId, '❌ Uso: `/renovar 11999999999 30`'); return new Response('ok'); }
+    const lista = await buscarCliente(userId, busca);
+    if (!lista.length) { await tgSend(chatId, `❌ Cliente não encontrado: *${busca}*`); return new Response('ok'); }
+
+    if (lista.length === 1) {
+      const c = lista[0];
+      await tgSend(chatId,
+        `⚠️ *Confirmar renovação?*\n\n👤 *${c.nome}*\n📅 Vence atual: ${fmtDate(c.data_vencimento)}\n🔄 Adicionar: *${dias} dias*`,
+        { reply_markup: { inline_keyboard: [[
+          { text: `✅ Confirmar ${dias}d`, callback_data: `renovar:${c.id}:${dias}` },
+          { text: '❌ Cancelar',           callback_data: 'cancelar' }
+        ]] } }
+      );
+    } else {
+      await tgSend(chatId, `🔍 *${lista.length} clientes encontrados. Escolha:*`);
+      for (const c of lista.slice(0, 4)) {
+        await tgSend(chatId,
+          `${statusIcon(c.status)} *${c.nome}* — ${fmtDate(c.data_vencimento)}`,
+          { reply_markup: { inline_keyboard: [[{ text: `🔄 Renovar ${dias}d`, callback_data: `renovar:${c.id}:${dias}` }]] } }
+        );
+      }
+    }
+    return new Response('ok');
+  }
+
+  await tgSend(chatId, '❓ Comando não reconhecido. Use /ajuda.');
+  return new Response('ok');
+});
