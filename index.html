@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/iptv-styles.css">
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -92,21 +93,21 @@
 <div class="sb-overlay" id="sbOverlay" onclick="closeSb()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="logo">
-    <div class="logo-icon">📡</div>
+    <div class="logo-icon"><i data-lucide="tv-2"></i></div>
     <div><div class="logo-text">IPTV PRO</div><div class="logo-sub">PAINEL DE GESTÃO</div></div>
   </div>
   <nav>
     <div class="nav-sec">Principal</div>
-    <div class="nav-item active" onclick="goPage('dashboard',this)"><span class="nav-ico">🏠</span> Dashboard</div>
-    <div class="nav-item" onclick="goPage('clientes',this)"><span class="nav-ico">👥</span> Clientes <span class="nav-badge" id="navTotal">—</span></div>
-    <div class="nav-item" onclick="goPage('planos',this)"><span class="nav-ico">📋</span> Planos</div>
-    <div class="nav-sec" style="margin-top:8px">Financeiro</div>
-    <div class="nav-item" onclick="goPage('financeiro',this)"><span class="nav-ico">💰</span> Pagamentos</div>
-    <div class="nav-item" onclick="goPage('fluxo',this)"><span class="nav-ico">📊</span> Fluxo de Caixa</div>
-    <div class="nav-item" onclick="goPage('forecast',this)"><span class="nav-ico">📈</span> Forecast</div>
-    <div class="nav-sec" style="margin-top:8px">Sistema</div>
-    <div class="nav-item" onclick="goPage('alertas',this)"><span class="nav-ico">🔔</span> Alertas <span class="nav-badge" id="navAlerts">—</span></div>
-    <div class="nav-item" onclick="goPage('config',this)"><span class="nav-ico">⚙️</span> Configurações</div>
+    <div class="nav-item active" onclick="goPage('dashboard',this)"><i data-lucide="layout-dashboard"></i> Dashboard</div>
+    <div class="nav-item" onclick="goPage('clientes',this)"><i data-lucide="users"></i> Clientes <span class="nav-badge red" id="navTotal">—</span></div>
+    <div class="nav-item" onclick="goPage('planos',this)"><i data-lucide="credit-card"></i> Planos</div>
+    <div class="nav-sec">Financeiro</div>
+    <div class="nav-item" onclick="goPage('financeiro',this)"><i data-lucide="banknote"></i> Pagamentos</div>
+    <div class="nav-item" onclick="goPage('fluxo',this)"><i data-lucide="bar-chart-2"></i> Fluxo de Caixa</div>
+    <div class="nav-item" onclick="goPage('forecast',this)"><i data-lucide="trending-up"></i> Forecast</div>
+    <div class="nav-sec">Sistema</div>
+    <div class="nav-item" onclick="goPage('alertas',this)"><i data-lucide="bell"></i> Alertas <span class="nav-badge red" id="navAlerts">—</span></div>
+    <div class="nav-item" onclick="goPage('config',this)"><i data-lucide="settings"></i> Configurações</div>
   </nav>
   <div class="sf">
     <div class="sf-user" style="cursor:pointer" onclick="openEditPerfil()" title="Editar perfil">
@@ -127,24 +128,24 @@
 <!-- ═══ MAIN APP ═══ -->
 <main class="main" id="mainApp" style="display:none">
   <header class="topbar">
-    <button class="menu-btn" onclick="toggleSb()">☰</button>
+    <button class="menu-btn" onclick="toggleSb()"><i data-lucide="menu"></i></button>
     <div class="page-ttl" id="pageTitle">DASHBOARD</div>
     <div class="search-wrap">
-      <span class="search-ico">🔍</span>
+      <i data-lucide="search"></i>
       <input type="text" id="searchInput" placeholder="Buscar cliente..." oninput="handleSearch(this.value)">
     </div>
     <div class="topbar-actions">
       <div style="position:relative">
-        <div class="icon-btn" onclick="toggleNotif()">🔔<span class="notif-dot" id="notifDot"></span></div>
+        <div class="icon-btn" onclick="toggleNotif()" title="Notificações"><i data-lucide="bell"></i><span class="notif-dot" id="notifDot"></span></div>
         <div class="notif-panel" id="notifPanel">
           <div class="notif-hdr"><span class="notif-hdr-title">NOTIFICAÇÕES</span><button class="btn btn-ghost btn-sm" onclick="markRead()">Lidas</button></div>
           <div class="notif-body" id="notifList"></div>
         </div>
       </div>
-      <div class="icon-btn" id="waDrawerBtn" onclick="toggleWaDrawer()" title="Notificações WhatsApp" style="position:relative">📲<span class="wa-badge" id="waBadge"></span></div>
-      <div class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</div>
-      <button class="btn btn-ghost btn-sm" onclick="reloadAll()">🔄</button>
-      <button class="btn btn-primary btn-sm" onclick="openModal('mNovo')">➕ Novo Cliente</button>
+      <div class="icon-btn" id="waDrawerBtn" onclick="toggleWaDrawer()" title="WhatsApp" style="position:relative"><i data-lucide="message-circle"></i><span class="wa-badge" id="waBadge"></span></div>
+      <div class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Tema"><i data-lucide="moon"></i></div>
+      <div class="icon-btn" onclick="reloadAll()" title="Atualizar"><i data-lucide="refresh-cw"></i></div>
+      <button class="btn btn-primary" onclick="openModal('mNovo')"><i data-lucide="plus"></i> NOVO CLIENTE</button>
     </div>
   </header>
 
@@ -152,37 +153,184 @@
 
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
+
+      <!-- WELCOME -->
       <div class="welcome-bar" id="welcomeBar">
         <div class="welcome-left">
-          <div class="welcome-greeting">☀️ Olá, <span class="hi" id="wName">—</span>!</div>
-          <div class="welcome-date" id="wDate">—</div>
+          <div class="welcome-icon"><i data-lucide="sun"></i></div>
+          <div>
+            <div class="welcome-greeting">Olá, <span class="hi" id="wName">—</span>!</div>
+            <div class="welcome-date" id="wDate">—</div>
+          </div>
         </div>
         <div class="welcome-right">
           <div class="welcome-plan-chip" id="wPlanChip"><div class="dot-pulse"></div><span id="wPlanName">Carregando...</span></div>
           <div class="welcome-expiry-warn" id="wExpiryWarn" style="display:none" onclick="openModal('mAssinatura')">⚠️ <span id="wExpiryTxt"></span></div>
         </div>
       </div>
-      <div class="stats-grid">
-        <div class="stat-card blue"><div class="stat-icon-wrap">👥</div><div class="stat-value" id="sTotal"><div class="spinner"></div></div><div class="stat-label">Total Clientes</div><div class="stat-change up" id="sAtivosLbl">—</div><span class="stat-pill info" id="sTrialPill">—</span></div>
-        <div class="stat-card green"><div class="stat-icon-wrap">✅</div><div class="stat-value" id="sAtivos"><div class="spinner"></div></div><div class="stat-label">Ativos</div><div class="stat-change up" id="sAtivoPct">—</div><span class="stat-pill ok" id="sTrialLbl">—</span></div>
-        <div class="stat-card purple"><div class="stat-icon-wrap">📊</div><div class="stat-value" id="sReceita"><div class="spinner"></div></div><div class="stat-label">Receita Estimada</div><div class="stat-change up">soma dos planos ativos</div><span class="stat-pill info" style="font-size:8px">* projeção</span></div>
-        <div class="stat-card teal"><div class="stat-icon-wrap">💰</div><div class="stat-value" id="sRecebido"><div class="spinner"></div></div><div class="stat-label">Recebido no Mês</div><div class="stat-change up" id="sRecebidoLbl">pagamentos confirmados</div><span class="stat-pill ok" id="sRecebidoPill">—</span></div>
-        <div class="stat-card yellow"><div class="stat-icon-wrap">⚠️</div><div class="stat-value" id="sPendente"><div class="spinner"></div></div><div class="stat-label">Pendente</div><div class="stat-change" id="sPendenteLbl">estimado − recebido</div><span class="stat-pill" id="sPendentePill">—</span></div>
-        <div class="stat-card" style="border-color:rgba(0,191,179,.22);background:linear-gradient(135deg,rgba(0,191,179,.05),rgba(0,212,255,.03))"><div class="stat-icon-wrap" style="background:rgba(0,191,179,.12)">🏦</div><div class="stat-value" id="sSaldoAcum" style="color:#00bfb3"><div class="spinner"></div></div><div class="stat-label">Saldo Acumulado</div><div class="stat-change" id="sSaldoAcumLbl">total histórico</div><span class="stat-pill" id="sSaldoAcumPill" style="background:rgba(0,191,179,.15);color:#00bfb3">—</span></div>
-      </div>
-      <div id="alertsDash" class="alert-list"></div>
-      <div class="grid-2">
-        <div>
-          <div class="panel" style="margin-bottom:14px">
-            <div class="panel-header"><div class="panel-title">CLIENTES RECENTES</div><button class="btn btn-ghost btn-sm" onclick="exportCSV()">📥 CSV</button></div>
-            <div class="filter-row" id="chipsDash"></div>
-            <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Plano</th><th>Status</th><th>Vencimento</th><th>Ações</th></tr></thead><tbody id="tDash"></tbody></table></div>
-          </div>
-          <div class="panel"><div class="panel-header"><div class="panel-title">RECEITA MENSAL</div></div><div class="panel-body chart-wrap"><div id="chart1"></div><div class="chart-tip" id="ct1"></div></div></div>
+
+      <!-- ALERT ROW -->
+      <div class="alert-row">
+        <div class="alert-card ac-red" onclick="goPage('alertas',document.querySelector('.nav-item[onclick*=alertas]'))">
+          <div class="ac-icon"><i data-lucide="alert-triangle"></i></div>
+          <div><div class="ac-val" id="sVencidos">—</div><div class="ac-lbl">Clientes vencidos</div></div>
+          <div class="ac-arr"><i data-lucide="chevron-right"></i></div>
         </div>
+        <div class="alert-card ac-yellow" onclick="goPage('alertas',document.querySelector('.nav-item[onclick*=alertas]'))">
+          <div class="ac-icon"><i data-lucide="clock"></i></div>
+          <div><div class="ac-val" id="sVencendoHoje">—</div><div class="ac-lbl">Vencem hoje</div></div>
+          <div class="ac-arr"><i data-lucide="chevron-right"></i></div>
+        </div>
+        <div class="alert-card ac-blue" onclick="goPage('financeiro',document.querySelector('.nav-item[onclick*=financeiro]'))">
+          <div class="ac-icon"><i data-lucide="dollar-sign"></i></div>
+          <div><div class="ac-val" id="sPendente">—</div><div class="ac-lbl">Pagamentos pendentes</div></div>
+          <div class="ac-arr"><i data-lucide="chevron-right"></i></div>
+        </div>
+        <div class="alert-card ac-green" onclick="toggleWaDrawer()">
+          <div class="ac-icon"><i data-lucide="message-circle"></i></div>
+          <div><div class="ac-val" id="sWaHoje">—</div><div class="ac-lbl">Cobranças WA hoje</div></div>
+          <div class="ac-arr"><i data-lucide="chevron-right"></i></div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="sc-top">
+            <div class="sc-icon"><i data-lucide="users"></i></div>
+            <svg width="58" height="26" viewBox="0 0 58 26"><polyline points="0,22 10,18 20,20 30,12 40,14 50,8 58,6" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity=".5"/><circle cx="58" cy="6" r="2.5" fill="#00d4ff"/></svg>
+          </div>
+          <div class="stat-label">Total Clientes</div>
+          <div class="stat-value" id="sTotal"><div class="spinner"></div></div>
+          <div class="stat-change up" id="sAtivosLbl">—</div>
+          <span class="stat-pill info" id="sTrialPill">—</span>
+        </div>
+        <div class="stat-card green">
+          <div class="sc-top">
+            <div class="sc-icon"><i data-lucide="user-check"></i></div>
+            <svg width="58" height="26" viewBox="0 0 58 26"><polyline points="0,20 10,16 20,18 30,10 40,12 50,6 58,4" fill="none" stroke="#00cc6a" stroke-width="1.5" opacity=".5"/><circle cx="58" cy="4" r="2.5" fill="#00cc6a"/></svg>
+          </div>
+          <div class="stat-label">Ativos</div>
+          <div class="stat-value" id="sAtivos"><div class="spinner"></div></div>
+          <div class="stat-change up" id="sAtivoPct">—</div>
+          <span class="stat-pill ok" id="sTrialLbl">—</span>
+        </div>
+        <div class="stat-card purple">
+          <div class="sc-top">
+            <div class="sc-icon"><i data-lucide="bar-chart-2"></i></div>
+            <svg width="58" height="26" viewBox="0 0 58 26"><polyline points="0,24 10,20 20,16 30,18 40,10 50,6 58,4" fill="none" stroke="#7b2fff" stroke-width="1.5" opacity=".5"/><circle cx="58" cy="4" r="2.5" fill="#7b2fff"/></svg>
+          </div>
+          <div class="stat-label">Receita Estimada</div>
+          <div class="stat-value" id="sReceita"><div class="spinner"></div></div>
+          <div class="stat-change up">soma dos planos ativos</div>
+          <span class="stat-pill info" style="font-size:8px">* projeção</span>
+        </div>
+        <div class="stat-card teal">
+          <div class="sc-top">
+            <div class="sc-icon"><i data-lucide="banknote"></i></div>
+            <svg width="58" height="26" viewBox="0 0 58 26"><polyline points="0,26 10,21 20,17 30,19 40,11 50,7 58,4" fill="none" stroke="#00bfb3" stroke-width="1.5" opacity=".5"/><circle cx="58" cy="4" r="2.5" fill="#00bfb3"/></svg>
+          </div>
+          <div class="stat-label">Recebido no Mês</div>
+          <div class="stat-value" id="sRecebido"><div class="spinner"></div></div>
+          <div class="stat-change up" id="sRecebidoLbl">pagamentos confirmados</div>
+          <span class="stat-pill ok" id="sRecebidoPill">—</span>
+        </div>
+        <div class="stat-card yellow">
+          <div class="sc-top">
+            <div class="sc-icon"><i data-lucide="clock"></i></div>
+            <svg width="58" height="26" viewBox="0 0 58 26"><polyline points="0,10 10,13 20,9 30,15 40,11 50,17 58,19" fill="none" stroke="#f0b800" stroke-width="1.5" opacity=".5"/><circle cx="58" cy="19" r="2.5" fill="#f0b800"/></svg>
+          </div>
+          <div class="stat-label">Pendente</div>
+          <div class="stat-value" id="sPendenteCard"><div class="spinner"></div></div>
+          <div class="stat-change" id="sPendenteLbl">estimado − recebido</div>
+          <span class="stat-pill" id="sPendentePill">—</span>
+        </div>
+        <div class="stat-card teal" style="border-color:rgba(0,191,179,.2)">
+          <div class="sc-top">
+            <div class="sc-icon" style="background:rgba(0,191,179,.1)"><i data-lucide="landmark" style="color:#00bfb3"></i></div>
+            <svg width="58" height="26" viewBox="0 0 58 26"><polyline points="0,22 10,18 20,14 30,16 40,9 50,5 58,3" fill="none" stroke="#00bfb3" stroke-width="1.5" opacity=".5"/><circle cx="58" cy="3" r="2.5" fill="#00bfb3"/></svg>
+          </div>
+          <div class="stat-label">Saldo Acumulado</div>
+          <div class="stat-value" id="sSaldoAcum" style="color:#00bfb3"><div class="spinner"></div></div>
+          <div class="stat-change" id="sSaldoAcumLbl">total histórico</div>
+          <span class="stat-pill" id="sSaldoAcumPill" style="background:rgba(0,191,179,.15);color:#00bfb3">—</span>
+        </div>
+      </div>
+
+      <!-- ALERTAS INLINE -->
+      <div id="alertsDash" class="alert-list"></div>
+
+      <!-- CHARTS GRID -->
+      <div class="charts-grid">
+        <!-- Gráfico de linha -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="ph-title"><div class="ph-dot"></div> RECEITA MENSAL</div>
+          </div>
+          <div class="panel-body chart-wrap" style="padding:12px 16px 8px">
+            <div id="chart1"></div>
+            <div class="chart-tip" id="ct1"></div>
+          </div>
+        </div>
+        <!-- Donut -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="ph-title"><div class="ph-dot" style="background:#00cc6a;box-shadow:0 0 5px #00cc6a"></div> CLIENTES POR PLANO</div>
+          </div>
+          <div class="panel-body">
+            <div id="donutWrap"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM GRID -->
+      <div class="bottom-grid">
+        <!-- Tabela clientes recentes -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="ph-title"><div class="ph-dot"></div> CLIENTES RECENTES</div>
+            <button class="ph-btn" onclick="exportCSV()"><i data-lucide="download"></i> CSV</button>
+          </div>
+          <div class="filter-row" id="chipsDash"></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Cliente</th><th>Plano</th><th>Status</th><th>Vencimento</th><th>Ações</th></tr></thead>
+              <tbody id="tDash"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Side col -->
         <div class="side-col">
-          <div class="panel"><div class="panel-header"><div class="panel-title">DISTRIBUIÇÃO</div></div><div class="panel-body"><div id="donutWrap"></div></div></div>
-          <div class="panel"><div class="panel-header"><div class="panel-title">ATIVIDADE</div></div><div class="panel-body" style="padding-top:8px"><div id="actList" style="display:flex;flex-direction:column"></div></div></div>
+          <!-- Ações rápidas -->
+          <div class="side-panel">
+            <div class="sp-title"><div class="sp-dot"></div> Ações Rápidas</div>
+            <div class="qa-item" onclick="openModal('mNovo')">
+              <div class="qa-ico" style="background:rgba(0,212,255,.08);border-color:rgba(0,212,255,.15)"><i data-lucide="user-plus" style="color:#00d4ff"></i></div>
+              <div style="flex:1"><div class="qa-label">Novo Cliente</div><div class="qa-sub">Cadastrar cliente</div></div>
+              <div class="qa-arr"><i data-lucide="chevron-right"></i></div>
+            </div>
+            <div class="qa-item" onclick="toggleWaDrawer()">
+              <div class="qa-ico" style="background:rgba(0,204,106,.08);border-color:rgba(0,204,106,.15)"><i data-lucide="send" style="color:#00cc6a"></i></div>
+              <div style="flex:1"><div class="qa-label">WhatsApp</div><div class="qa-sub">Notificações e cobranças</div></div>
+              <div class="qa-arr"><i data-lucide="chevron-right"></i></div>
+            </div>
+            <div class="qa-item" onclick="openRenovacaoLote()">
+              <div class="qa-ico" style="background:rgba(123,47,255,.08);border-color:rgba(123,47,255,.15)"><i data-lucide="refresh-cw" style="color:#7b2fff"></i></div>
+              <div style="flex:1"><div class="qa-label">Renovar em lote</div><div class="qa-sub">Renovar vencidos</div></div>
+              <div class="qa-arr"><i data-lucide="chevron-right"></i></div>
+            </div>
+            <div class="qa-item" onclick="exportCSV()">
+              <div class="qa-ico" style="background:rgba(240,184,0,.08);border-color:rgba(240,184,0,.15)"><i data-lucide="download" style="color:#f0b800"></i></div>
+              <div style="flex:1"><div class="qa-label">Exportar CSV</div><div class="qa-sub">Baixar clientes</div></div>
+              <div class="qa-arr"><i data-lucide="chevron-right"></i></div>
+            </div>
+          </div>
+          <!-- Atividade recente -->
+          <div class="side-panel">
+            <div class="sp-title"><div class="sp-dot"></div> Atividade Recente</div>
+            <div id="actList" style="display:flex;flex-direction:column"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -536,7 +684,7 @@ Obrigado pela confiança! 🙏</textarea><div class="wa-vars" style="margin-top:
 <script src="js/iptv-financeiro.js"></script>
 <script src="js/iptv-whatsapp.js"></script>
 <script src="js/iptv-mercadopago.js"></script>
-<script>init();</script>
+<script>lucide.createIcons();init();</script>
 
 </body>
 </html>
